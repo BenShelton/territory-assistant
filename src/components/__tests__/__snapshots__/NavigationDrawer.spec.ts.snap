@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Components/NavigationDrawer should match the snapshot 1`] = `
+<v-navigation-drawer app="">
+  <v-toolbar>
+    <v-btn icon="">
+      <v-icon>mdi-close</v-icon>
+    </v-btn>
+    <v-toolbar-title>Navigation</v-toolbar-title>
+  </v-toolbar>
+  <v-list nav="">
+    <v-list-item to="/">
+      <v-list-item-icon>
+        <v-icon>mdi-home</v-icon>
+      </v-list-item-icon>
+      <v-list-item-title>Home</v-list-item-title>
+    </v-list-item>
+    <v-list-item to="/maps">
+      <v-list-item-icon>
+        <v-icon>mdi-map-search</v-icon>
+      </v-list-item-icon>
+      <v-list-item-title>Maps</v-list-item-title>
+    </v-list-item>
+  </v-list>
+</v-navigation-drawer>
+`;

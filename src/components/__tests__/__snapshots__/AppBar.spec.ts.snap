@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Components/AppBar should match the snapshot 1`] = `
+<v-app-bar app="">
+  <v-app-bar-nav-icon></v-app-bar-nav-icon>
+  <v-toolbar-title class="headline"><span>Territory Assistant</span></v-toolbar-title>
+</v-app-bar>
+`;
