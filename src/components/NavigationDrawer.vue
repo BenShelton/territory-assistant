@@ -14,11 +14,11 @@
         <v-list-item-title>Home</v-list-item-title>
       </v-list-item>
 
-      <v-list-item to="/maps">
+      <v-list-item to="/territories">
         <v-list-item-icon>
           <v-icon>mdi-map-search</v-icon>
         </v-list-item-icon>
-        <v-list-item-title>Maps</v-list-item-title>
+        <v-list-item-title>Territories</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-navigation-drawer>
