@@ -54,7 +54,7 @@
     "vuetify-loader": "^1.3.0"
   },
   "gitHooks": {
-    "pre-commit": "lint-staged && npm run test:unit -- -o",
+    "pre-commit": "lint-staged",
     "prepare-commit-msg": "exec < /dev/tty && git cz --hook",
     "pre-push": "npm run test"
   },
@@ -66,7 +66,8 @@
   "lint-staged": {
     "*.{js,vue,ts}": [
       "vue-cli-service lint",
-      "git add"
+      "git add",
+      "vue-cli-service test:unit --findRelatedTests --bail"
     ]
   }
 }
