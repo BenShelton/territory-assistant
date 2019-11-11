@@ -1,16 +1,15 @@
-import { mount } from '@vue/test-utils'
+import { createWrapper } from 'UnitTest/helpers'
 
 import App from '../App.vue'
-import store from '@/store'
 
 describe('App', () => {
   it('should have the name "App"', () => {
-    const wrapper = mount(App, { store })
+    const wrapper = createWrapper(App, { store: true })
     expect(wrapper.name()).toBe('App')
   })
 
   it('should match the snapshot', () => {
-    const wrapper = mount(App, { store })
+    const wrapper = createWrapper(App, { store: true })
     expect(wrapper.html()).toMatchSnapshot()
   })
 })

@@ -1,16 +1,15 @@
-import { mount } from '@vue/test-utils'
+import { createWrapper } from 'UnitTest/helpers'
 
 import AppBar from '../AppBar.vue'
-import store from '@/store'
 
 describe('Components/AppBar', () => {
   it('should have the name "AppBar"', () => {
-    const wrapper = mount(AppBar, { store })
+    const wrapper = createWrapper(AppBar, { store: true })
     expect(wrapper.name()).toBe('AppBar')
   })
 
   it('should match the snapshot', () => {
-    const wrapper = mount(AppBar, { store })
+    const wrapper = createWrapper(AppBar, { store: true })
     expect(wrapper.html()).toMatchSnapshot()
   })
 })

@@ -18,6 +18,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "UnitTest/*": [
+        "tests/unit/*"
       ]
     },
     "lib": [

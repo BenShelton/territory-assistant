@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { join } = require('path')
+
+function resolve (dir) {
+  return join(__dirname, dir)
+}
+
 module.exports = {
   transpileDependencies: [
     'vuetify'
@@ -8,6 +15,12 @@ module.exports = {
         '/.netlify/functions': {
           target: 'http://localhost:9000'
         }
+      }
+    },
+    resolve: {
+      alias: {
+        '@': resolve('src'),
+        'UnitTest': resolve('tests/unit')
       }
     }
   }

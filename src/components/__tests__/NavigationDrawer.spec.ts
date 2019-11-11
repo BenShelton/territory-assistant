@@ -1,16 +1,15 @@
-import { mount } from '@vue/test-utils'
+import { createWrapper } from 'UnitTest/helpers'
 
 import NavigationDrawer from '../NavigationDrawer.vue'
-import store from '@/store'
 
 describe('Components/NavigationDrawer', () => {
   it('should have the name "NavigationDrawer"', () => {
-    const wrapper = mount(NavigationDrawer, { store })
+    const wrapper = createWrapper(NavigationDrawer, { store: true })
     expect(wrapper.name()).toBe('NavigationDrawer')
   })
 
   it('should match the snapshot', () => {
-    const wrapper = mount(NavigationDrawer, { store })
+    const wrapper = createWrapper(NavigationDrawer, { store: true })
     expect(wrapper.html()).toMatchSnapshot()
   })
 })
