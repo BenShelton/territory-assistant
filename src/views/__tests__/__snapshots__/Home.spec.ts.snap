@@ -1,9 +1,30 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Views/Home should match the snapshot 1`] = `
-<v-container>
+<div class="container">
   <h1 class="headline">
     Welcome to Territory Assistant
   </h1>
-</v-container>
+  <div>
+    <div class="row my-3">
+      <div align="center" class="col"><button type="button" class="mx-3 v-btn v-btn--contained theme--light v-size--default primary"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-comment-eye theme--light"></i>
+        TOGGLE INFO LAYER
+      </span></button></div>
+      <div align="center" class="col"><button type="button" class="mx-3 v-btn v-btn--contained theme--light v-size--default primary"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate v-icon--left mdi mdi-comment-edit theme--light"></i>
+        EDIT INFO LAYER
+      </span></button></div>
+    </div>
+    <div class="v-card v-sheet theme--light">
+      <div class="v-responsive v-image">
+        <div class="v-image__image v-image__image--preload v-image__image--cover" style="background-position: center center;" name="fade-transition" mode="in-out"></div>
+        <div class="v-responsive__content"></div>
+      </div>
+    </div>
+    <div role="dialog" class="v-dialog__container">
+      <div role="document" class="v-dialog__content" style="z-index: 0;">
+        <div class="v-dialog v-dialog--persistent" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
 `;

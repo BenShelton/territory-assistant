@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <h1 class="headline">
-      Maps
+      Territories
     </h1>
   </v-container>
 </template>

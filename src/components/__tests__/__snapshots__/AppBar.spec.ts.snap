@@ -1,8 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Components/AppBar should match the snapshot 1`] = `
-<v-app-bar app="">
-  <v-app-bar-nav-icon></v-app-bar-nav-icon>
-  <v-toolbar-title class="headline"><span>Territory Assistant</span></v-toolbar-title>
-</v-app-bar>
+<header class="v-sheet v-sheet--tile theme--light v-toolbar v-app-bar v-app-bar--fixed" style="height: 64px; margin-top: 0px; transform: translateY(0px); left: 0px; right: 0px;">
+  <div class="v-toolbar__content" style="height: 64px;"><button type="button" class="v-app-bar__nav-icon v-btn v-btn--flat v-btn--icon v-btn--round theme--light v-size--default"><span class="v-btn__content"><i aria-hidden="true" class="v-icon notranslate mdi mdi-menu theme--light"></i></span></button>
+    <div class="v-toolbar__title headline"><span>Territory Assistant</span></div>
+  </div>
+</header>
 `;
