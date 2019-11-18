@@ -1,7 +1,9 @@
 {
   "presets": [
     "@babel/preset-typescript",
-    "@babel/preset-env"
+    ["@babel/preset-env", {
+      "targets": { "node": "8.1" }
+    }]
   ],
   "plugins": [
     "@babel/plugin-proposal-class-properties",

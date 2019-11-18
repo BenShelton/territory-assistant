@@ -2,7 +2,13 @@
   <div>
     <v-row class="my-3">
       <v-col v-for="button of buttons" :key="button.text" align="center">
-        <v-btn class="mx-3" color="primary" @click="button.method">
+        <v-btn
+          class="mx-3"
+          color="primary"
+          :disabled="loading"
+          :loading="loading"
+          @click="button.method"
+        >
           <v-icon left v-text="button.icon" />
           {{ button.text }}
         </v-btn>
@@ -38,7 +44,8 @@ export default Vue.extend({
   },
 
   data: () => ({
-    editDialog: false
+    editDialog: false,
+    loading: false
   }),
 
   computed: {
@@ -54,11 +61,25 @@ export default Vue.extend({
   },
 
   methods: {
-    toggleInfo (): void {
-
+    async toggleInfo (): Promise<void> {
+      await this.loadInfo()
     },
-    editInfo (): void {
-      this.editDialog = true
+    async editInfo (): Promise<void> {
+      const loaded = await this.loadInfo()
+      if (loaded) this.editDialog = true
+    },
+    async loadInfo (): Promise<boolean> {
+      let loaded = false
+      this.loading = true
+      try {
+        await this.$store.dispatch('territory/loadInfo')
+        loaded = true
+      } catch (err) {
+        this.$notification({ text: 'Could not load territory information', type: 'error' })
+      } finally {
+        this.loading = false
+      }
+      return loaded
     },
     closeEditor (): void {
       this.editDialog = false

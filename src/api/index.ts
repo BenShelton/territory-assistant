@@ -1,12 +1,15 @@
-async function request<T> (requestParams: any): Promise<T> {
-  const res = await fetch(requestParams)
+import { IBoundaryText } from 'types'
+
+async function request<T> (path: string, init: RequestInit): Promise<T> {
+  const resource = '/.netlify/functions/' + path
+  const res = await fetch(resource, init)
   if (res.ok) return res.json() as Promise<T>
   throw new Error(`Invalid Response: ${res.status} - ${res.statusText}`)
 }
 
 const api = {
-  maps: {
-    list: () => request({})
+  territory: {
+    info: () => request<IBoundaryText[]>('/territory/info', { method: 'GET' })
   }
 }
 
