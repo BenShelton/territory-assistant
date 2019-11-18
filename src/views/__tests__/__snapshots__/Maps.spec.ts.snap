@@ -1,9 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Views/Territories should match the snapshot 1`] = `
+exports[`Views/Maps should match the snapshot 1`] = `
 <div class="container">
   <h1 class="headline">
-    Territories
+    Maps
   </h1>
 </div>
 `;

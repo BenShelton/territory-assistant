@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
 
 import Home from '../views/Home.vue'
-import Territories from '../views/Territories.vue'
+import Maps from '../views/Maps.vue'
 
 Vue.use(VueRouter)
 
@@ -13,9 +13,9 @@ const routes: RouteConfig[] = [
     component: Home
   },
   {
-    path: '/territories',
-    name: 'territories',
-    component: Territories
+    path: '/maps',
+    name: 'maps',
+    component: Maps
   }
 ]
 

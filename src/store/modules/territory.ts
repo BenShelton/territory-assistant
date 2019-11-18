@@ -1,10 +1,11 @@
 import { Module } from 'vuex'
-import { ITerritory, IBoundaryText } from 'types'
+
+import api from '@/api'
+import { IBoundaryText } from 'types'
 
 interface IState {
   src: string
-  infoText: IBoundaryText[]
-  list: ITerritory[]
+  info: IBoundaryText[]
   loading: boolean
 }
 
@@ -12,13 +13,23 @@ const storeModule: Module<IState, {}> = {
   namespaced: true,
   state: {
     src: '',
-    infoText: [],
-    list: [],
+    info: [],
     loading: false
   },
+  actions: {
+    async loadInfo ({ commit }) {
+      commit('setLoading', true)
+      const res = await api.territory.info()
+      commit('setInfo', res)
+    }
+  },
   mutations: {
-    updateOutline (state, payload) {
-      state.list[0].outline = payload
+    setLoading (state, payload) {
+      state.loading = payload
+    },
+    setInfo (state, payload) {
+      state.info = payload
+      state.loading = false
     }
   }
 }

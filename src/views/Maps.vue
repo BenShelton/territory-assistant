@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <h1 class="headline">
-      Territories
+      Maps
     </h1>
   </v-container>
 </template>
@@ -10,6 +10,6 @@
 import Vue from 'vue'
 
 export default Vue.extend({
-  name: 'Territories'
+  name: 'Maps'
 })
 </script>
