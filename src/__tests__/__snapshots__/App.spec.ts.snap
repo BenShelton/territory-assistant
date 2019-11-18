@@ -28,6 +28,7 @@ exports[`App should match the snapshot 1`] = `
     <main class="v-content" style="padding: 64px 0px 0px 0px;">
       <div class="v-content__wrap"></div>
     </main>
+    <div class="notifications-wrapper"><span></span></div>
   </div>
 </div>
 `;

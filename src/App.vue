@@ -5,6 +5,7 @@
     <v-content>
       <router-view />
     </v-content>
+    <Notification />
   </v-app>
 </template>
 
@@ -13,13 +14,15 @@ import Vue from 'vue'
 
 import AppBar from '@/components/AppBar.vue'
 import NavigationDrawer from '@/components/NavigationDrawer.vue'
+import Notification from '@/components/Notification.vue'
 
 export default Vue.extend({
   name: 'App',
 
   components: {
     AppBar,
-    NavigationDrawer
+    NavigationDrawer,
+    Notification
   }
 })
 </script>
