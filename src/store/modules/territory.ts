@@ -19,7 +19,11 @@ const storeModule: Module<IState, {}> = {
   actions: {
     async loadInfo ({ commit }) {
       commit('setLoading', true)
-      const res = await api.territory.info()
+      const res = await api.territory.listInfo()
+      commit('setInfo', res)
+    },
+    async updateInfo ({ commit }, payload: IBoundaryText[]) {
+      const res = await api.territory.updateInfo(payload)
       commit('setInfo', res)
     }
   },

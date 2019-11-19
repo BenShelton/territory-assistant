@@ -1,4 +1,4 @@
-import { IBoundaryText } from 'types'
+import { API } from 'types'
 
 async function request<T> (path: string, init: RequestInit): Promise<T> {
   const resource = '/.netlify/functions/' + path
@@ -9,7 +9,8 @@ async function request<T> (path: string, init: RequestInit): Promise<T> {
 
 const api = {
   territory: {
-    info: () => request<IBoundaryText[]>('/territory/info', { method: 'GET' })
+    listInfo: () => request<API.Territory.GetInfo.Response>('/territory/info', { method: 'GET' }),
+    updateInfo: (data: API.Territory.UpdateInfo.Request) => request<API.Territory.UpdateInfo.Response>('/territory/info', { method: 'POST', body: JSON.stringify(data) })
   }
 }
 
