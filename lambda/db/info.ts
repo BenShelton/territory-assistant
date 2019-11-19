@@ -22,11 +22,10 @@ export const updateInfo = async (infoTexts: CollInfo[]): Promise<void> => {
   const coll = await getCollection
   const operations = infoTexts.map(i => {
     const _id = i._id ? new ObjectID(i._id) : new ObjectID()
-    i._id = _id
     return {
       replaceOne: {
         filter: { _id },
-        document: i,
+        replacement: { ...i, _id },
         upsert: true
       }
     }

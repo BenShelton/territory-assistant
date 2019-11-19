@@ -19,7 +19,12 @@
     </v-card>
     <v-dialog v-model="editDialog" persistent :transition="false">
       <v-card height="90vh">
-        <InformationEditor @close="closeEditor" />
+        <InformationEditor
+          :key="editKey"
+          :saving="saving"
+          @close="closeEditor"
+          @save="onSave"
+        />
       </v-card>
     </v-dialog>
   </div>
@@ -29,6 +34,7 @@
 import Vue from 'vue'
 
 import InformationEditor from '@/components/InformationEditor.vue'
+import { IBoundaryText } from 'types'
 
 interface IButton {
   text: string
@@ -44,8 +50,10 @@ export default Vue.extend({
   },
 
   data: () => ({
+    editKey: 0,
     editDialog: false,
-    loading: false
+    loading: false,
+    saving: false
   }),
 
   computed: {
@@ -66,7 +74,10 @@ export default Vue.extend({
     },
     async editInfo (): Promise<void> {
       const loaded = await this.loadInfo()
-      if (loaded) this.editDialog = true
+      if (loaded) {
+        this.editKey = Date.now()
+        this.editDialog = true
+      }
     },
     async loadInfo (): Promise<boolean> {
       let loaded = false
@@ -83,6 +94,18 @@ export default Vue.extend({
     },
     closeEditor (): void {
       this.editDialog = false
+    },
+    async onSave (texts: IBoundaryText[]): Promise<void> {
+      this.saving = true
+      try {
+        await this.$store.dispatch('territory/updateInfo', texts)
+        this.$notification({ text: 'Information Texts have been saved', type: 'success' })
+        this.closeEditor()
+      } catch (err) {
+        this.$notification({ text: 'Could not update territory information', type: 'error' })
+      } finally {
+        this.saving = false
+      }
     }
   }
 })

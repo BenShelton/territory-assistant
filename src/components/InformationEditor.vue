@@ -21,13 +21,24 @@
       <v-btn color="primary" @click="addText">
         ADD TEXT
       </v-btn>
-      <v-btn class="ml-3 mr-n1" color="green" @click="onSave">
+      <v-btn
+        class="ml-3 mr-n1"
+        color="green"
+        :disabled="loading || saving"
+        :loading="saving"
+        @click="onSave"
+      >
         <v-icon left>
           mdi-content-save
         </v-icon>
         Save
       </v-btn>
-      <v-btn class="ml-3 mr-n1" icon @click="onClose">
+      <v-btn
+        class="ml-3 mr-n1"
+        icon
+        :disabled="saving"
+        @click="onClose"
+      >
         <v-icon>mdi-close-circle</v-icon>
       </v-btn>
     </v-toolbar>
@@ -70,6 +81,10 @@ import { IBoundaryText } from 'types'
 export default Vue.extend({
   name: 'InformationEditor',
 
+  props: {
+    saving: { type: Boolean, required: true }
+  },
+
   mounted () {
     this.initialise()
   },
@@ -104,6 +119,7 @@ export default Vue.extend({
 
   methods: {
     initialise (): void {
+      this.texts = this.$store.state.territory.info
       this.img = new Image()
       this.img.onload = () => {
         this.draw()
@@ -216,7 +232,7 @@ export default Vue.extend({
       this.draw()
     },
     onSave (): void {
-      this.$emit('close')
+      this.$emit('save', this.texts)
     },
     onClose (): void {
       if (!confirm('Are you sure you want to close? All changes will be lost!')) return
