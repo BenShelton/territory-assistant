@@ -26,3 +26,11 @@ export default Vue.extend({
   }
 })
 </script>
+
+<style lang="sass">
+canvas
+  padding: 0
+  margin: 0
+  width: 100%
+  height: 100%
+</style>

@@ -14,12 +14,7 @@ exports[`Views/Home should match the snapshot 1`] = `
         EDIT INFO LAYER
       </span></button></div>
     </div>
-    <div class="v-card v-sheet theme--light">
-      <div class="v-responsive v-image">
-        <div class="v-image__image v-image__image--preload v-image__image--cover" style="background-position: center center;" name="fade-transition" mode="in-out"></div>
-        <div class="v-responsive__content"></div>
-      </div>
-    </div>
+    <div class="v-card v-sheet theme--light"><canvas style="height: 10px;"></canvas></div>
     <div role="dialog" class="v-dialog__container">
       <div role="document" class="v-dialog__content" style="z-index: 0;">
         <div class="v-dialog v-dialog--persistent" style="display: none;"></div>

@@ -23,7 +23,7 @@
       </v-btn>
       <v-btn
         class="ml-3 mr-n1"
-        color="green"
+        color="green white--text"
         :disabled="loading || saving"
         :loading="saving"
         @click="onSave"
@@ -248,11 +248,6 @@ export default Vue.extend({
 .canvas-area
   position: relative
   height: calc(100% - 64px)
-canvas
-  padding: 0
-  margin: 0
-  width: 100%
-  height: 100%
 .item-menu
   position: absolute
   bottom: 12px
