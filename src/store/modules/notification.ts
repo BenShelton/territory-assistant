@@ -1,11 +1,8 @@
 import { Module } from 'vuex'
 import { INotification } from 'types'
+import { INotificationState, IRootState } from 'types/vuex'
 
-interface IState {
-  list: INotification[]
-}
-
-const storeModule: Module<IState, {}> = {
+const storeModule: Module<INotificationState, IRootState> = {
   namespaced: true,
   state: {
     list: []

@@ -2,17 +2,11 @@ import { Module } from 'vuex'
 
 import api from '@/api'
 import { IBoundaryText } from 'types'
+import { ITerritoryState, IRootState } from 'types/vuex'
 
-interface IState {
-  src: string
-  info: IBoundaryText[]
-  loading: boolean
-}
-
-const storeModule: Module<IState, {}> = {
+const storeModule: Module<ITerritoryState, IRootState> = {
   namespaced: true,
   state: {
-    src: '',
     info: [],
     loading: false
   },
@@ -28,10 +22,10 @@ const storeModule: Module<IState, {}> = {
     }
   },
   mutations: {
-    setLoading (state, payload) {
+    setLoading (state, payload: boolean) {
       state.loading = payload
     },
-    setInfo (state, payload) {
+    setInfo (state, payload: IBoundaryText[]) {
       state.info = payload
       state.loading = false
     }

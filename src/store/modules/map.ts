@@ -1,12 +1,7 @@
 import { Module } from 'vuex'
-import { IMap } from 'types'
+import { IMapState, IRootState } from 'types/vuex'
 
-interface IState {
-  list: IMap[]
-  loading: boolean
-}
-
-const storeModule: Module<IState, {}> = {
+const storeModule: Module<IMapState, IRootState> = {
   namespaced: true,
   state: {
     list: [],

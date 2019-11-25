@@ -1,4 +1,5 @@
 export * from './api'
 export * from './map'
 export * from './notification'
+export * from './settings'
 export * from './territory'

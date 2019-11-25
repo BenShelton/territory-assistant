@@ -1,16 +1,13 @@
 import { Module } from 'vuex'
+import { IDrawerState, IRootState } from 'types/vuex'
 
-interface IState {
-  open: boolean
-}
-
-const storeModule: Module<IState, {}> = {
+const storeModule: Module<IDrawerState, IRootState> = {
   namespaced: true,
   state: {
     open: false
   },
   mutations: {
-    setDrawer (state, payload) {
+    setDrawer (state, payload: boolean) {
       state.open = payload
     },
     toggleDrawer (state) {
