@@ -33,7 +33,9 @@
 <script lang="ts">
 import Vue from 'vue'
 
+import store from '@/store'
 import InformationEditor from '@/components/InformationEditor.vue'
+
 import { IBoundaryText } from 'types'
 
 interface IButton {
@@ -54,7 +56,7 @@ export default Vue.extend({
     this.img.onload = () => {
       this.draw()
     }
-    this.img.src = this.$store.state.settings.src
+    this.img.src = store.state.settings.src
   },
 
   data: () => ({
@@ -70,7 +72,7 @@ export default Vue.extend({
 
   computed: {
     texts (): IBoundaryText[] {
-      return this.$store.state.territory.info
+      return store.state.territory.info
     },
     buttons (): IButton[] {
       return [
@@ -133,7 +135,7 @@ export default Vue.extend({
       let loaded = false
       this.loading = true
       try {
-        await this.$store.dispatch('territory/loadInfo')
+        await store.dispatch('territory/loadInfo')
         loaded = true
       } catch (err) {
         this.$notification({ text: 'Could not load territory information', type: 'error' })
@@ -148,7 +150,7 @@ export default Vue.extend({
     async onSave (texts: IBoundaryText[]): Promise<void> {
       this.saving = true
       try {
-        await this.$store.dispatch('territory/updateInfo', texts)
+        await store.dispatch('territory/updateInfo', texts)
         this.$notification({ text: 'Information Texts have been saved', type: 'success' })
         this.closeEditor()
       } catch (err) {

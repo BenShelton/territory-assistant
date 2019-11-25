@@ -1,5 +1,7 @@
 import Vue from 'vue'
 
+import store from '@/store'
+
 import { INotificationOptions, INotification } from 'types/notification'
 
 Vue.use({
@@ -12,9 +14,9 @@ Vue.use({
         text: options.text,
         type: options.type
       }
-      this.$store.commit('notification/add', notification)
+      store.commit('notification/add', notification)
       setTimeout(() => {
-        this.$store.commit('notification/remove', notificationId)
+        store.commit('notification/remove', notificationId)
       }, options.timeout || 3000)
     }
   }

@@ -15,6 +15,9 @@
 
 <script lang="ts">
 import Vue from 'vue'
+
+import store from '@/store'
+
 import { INotification } from 'types'
 
 export default Vue.extend({
@@ -22,7 +25,7 @@ export default Vue.extend({
 
   computed: {
     notifications (): INotification[] {
-      return this.$store.state.notification.list
+      return store.state.notification.list
     }
   }
 })

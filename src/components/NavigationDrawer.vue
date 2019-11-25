@@ -27,16 +27,18 @@
 <script lang="ts">
 import Vue from 'vue'
 
+import store from '@/store'
+
 export default Vue.extend({
   name: 'NavigationDrawer',
 
   computed: {
     drawer: {
       get (): boolean {
-        return this.$store.state.drawer.open
+        return store.state.drawer.open
       },
       set (val: boolean): void {
-        this.$store.commit('drawer/setDrawer', val)
+        store.commit('drawer/setDrawer', val)
       }
     }
   },

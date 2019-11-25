@@ -10,12 +10,14 @@
 <script lang="ts">
 import Vue from 'vue'
 
+import store from '@/store'
+
 export default Vue.extend({
   name: 'AppBar',
 
   methods: {
     toggleDrawer (): void {
-      this.$store.commit('drawer/toggleDrawer')
+      store.commit('drawer/toggleDrawer')
     }
   }
 })

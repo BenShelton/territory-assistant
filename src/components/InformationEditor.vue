@@ -76,6 +76,8 @@
 <script lang="ts">
 import Vue from 'vue'
 
+import store from '@/store'
+
 import { IBoundaryText } from 'types'
 
 export default Vue.extend({
@@ -119,13 +121,13 @@ export default Vue.extend({
 
   methods: {
     initialise (): void {
-      this.texts = this.$store.state.territory.info
+      this.texts = store.state.territory.info
       this.img = new Image()
       this.img.onload = () => {
         this.draw()
         this.loading = false
       }
-      this.img.src = this.$store.state.settings.src
+      this.img.src = store.state.settings.src
     },
     draw (): void {
       const { canvas, ctx } = this
