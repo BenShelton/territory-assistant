@@ -54,7 +54,7 @@ export default Vue.extend({
     this.img.onload = () => {
       this.draw()
     }
-    this.img.src = this.$store.state.territory.src
+    this.img.src = this.$store.state.settings.src
   },
 
   data: () => ({

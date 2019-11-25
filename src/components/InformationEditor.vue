@@ -125,7 +125,7 @@ export default Vue.extend({
         this.draw()
         this.loading = false
       }
-      this.img.src = this.$store.state.territory.src
+      this.img.src = this.$store.state.settings.src
     },
     draw (): void {
       const { canvas, ctx } = this
