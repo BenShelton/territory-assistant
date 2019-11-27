@@ -9,7 +9,7 @@ function isBoundaryText (obj: unknown): obj is IBoundaryText[] {
   const baseBoundaryText: IBoundaryText = { x: 0, y: 0, content: '' }
   const keyChecks = Object.entries(baseBoundaryText).map(([k, v]) => ({ key: k, type: typeof v }))
   // eslint-disable-next-line valid-typeof
-  return Array.isArray(obj) && obj.every(o => keyChecks.every(check => typeof o[check.key] === check.type))
+  return obj.every(o => keyChecks.every(check => typeof o[check.key] === check.type))
 }
 
 const handler: Handler = async (event: APIGatewayEvent) => {

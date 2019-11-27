@@ -1,7 +1,7 @@
 import { Module } from 'vuex'
 
 import api from '@/api'
-import { ISettings } from 'types'
+import { ISettings, UpdatedSettings } from 'types'
 import { ISettingsState, IRootState } from 'types/vuex'
 
 const storeModule: Module<ISettingsState, IRootState> = {
@@ -12,6 +12,10 @@ const storeModule: Module<ISettingsState, IRootState> = {
   actions: {
     async load ({ commit }) {
       const res = await api.settings.load()
+      commit('loadSettings', res)
+    },
+    async update ({ commit }, payload: UpdatedSettings) {
+      const res = await api.settings.update(payload)
       commit('loadSettings', res)
     }
   },

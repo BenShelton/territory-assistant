@@ -1,7 +1,7 @@
 import { Collection, Db } from 'mongodb'
 import setup from './setup'
 
-import { ISettingsListItem, ISettings } from 'types'
+import { ISettingsListItem, ISettings, UpdatedSettings } from 'types'
 import { MongoInterface } from 'types/mongo'
 
 type CollInfo = MongoInterface<ISettingsListItem>
@@ -19,4 +19,18 @@ export const getSettings = async (): Promise<ISettings> => {
     Object.assign(acc, { [item.key]: item.value })
     return acc
   }, {}) as ISettings
+}
+
+export const updateSettings = async (settings: UpdatedSettings): Promise<void> => {
+  const coll = await getCollection
+  const operations = settings.map(i => {
+    return {
+      updateOne: {
+        filter: { key: i.key },
+        update: { $set: { value: i.value } },
+        upsert: true
+      }
+    }
+  })
+  await coll.bulkWrite(operations, { ordered: false })
 }
