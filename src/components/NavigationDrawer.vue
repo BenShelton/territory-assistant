@@ -7,18 +7,11 @@
       <v-toolbar-title>Navigation</v-toolbar-title>
     </v-toolbar>
     <v-list nav>
-      <v-list-item to="/">
+      <v-list-item v-for="item of navItems" :key="item.title" :to="item.to">
         <v-list-item-icon>
-          <v-icon>mdi-home</v-icon>
+          <v-icon v-text="item.icon" />
         </v-list-item-icon>
-        <v-list-item-title>Home</v-list-item-title>
-      </v-list-item>
-
-      <v-list-item to="/maps">
-        <v-list-item-icon>
-          <v-icon>mdi-map-search</v-icon>
-        </v-list-item-icon>
-        <v-list-item-title>Maps</v-list-item-title>
+        <v-list-item-title v-text="item.title" />
       </v-list-item>
     </v-list>
   </v-navigation-drawer>
@@ -40,6 +33,13 @@ export default Vue.extend({
       set (val: boolean): void {
         store.commit('drawer/setDrawer', val)
       }
+    },
+    navItems (): { to: string, icon: string, title: string }[] {
+      return [
+        { to: '/', icon: 'mdi-home', title: 'Home' },
+        { to: '/maps', icon: 'mdi-map-search', title: 'Maps' },
+        { to: '/settings', icon: 'mdi-settings', title: 'Settings' }
+      ]
     }
   },
 
