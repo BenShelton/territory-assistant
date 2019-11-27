@@ -84,6 +84,7 @@ export default Vue.extend({
       try {
         await store.dispatch('settings/update', this.updatedSettings)
         this.refreshSettings()
+        this.$notification({ text: 'Settings have been saved', type: 'success' })
       } catch (err) {
         console.error(err)
         this.$notification({ text: 'Could not update settings', type: 'error' })

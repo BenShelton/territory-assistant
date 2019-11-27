@@ -8,7 +8,7 @@ type CollInfo = MongoInterface<ISettingsListItem>
 
 const getCollection: Promise<Collection<CollInfo>> = new Promise(resolve => {
   setup
-    .then((db: Db) => db.collection('info'))
+    .then((db: Db) => db.collection('settings'))
     .then(resolve)
 })
 
