@@ -1,7 +1,7 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
 import { getInfo, updateInfo } from './db/info'
-import { generateRouteMatcher, success, badRequest } from './helpers'
+import { generateRouteMatcher, success, badRequest, notFound } from './helpers'
 import { IBoundaryText, API } from 'types'
 
 function isBoundaryText (obj: unknown): obj is IBoundaryText[] {
@@ -31,7 +31,7 @@ const handler: Handler = async (event: APIGatewayEvent) => {
 
   // 404
   } else {
-    return { statusCode: 404, body: 'Unknown Route' }
+    return notFound()
   }
 }
 

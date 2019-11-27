@@ -21,3 +21,7 @@ export function success<T> (data: T): IResult {
 export function badRequest (message: string): IResult {
   return { statusCode: 400, body: message }
 }
+
+export function notFound (): IResult {
+  return { statusCode: 404, body: 'Unknown Route' }
+}

@@ -1,7 +1,7 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
 import { getSettings } from './db/settings'
-import { generateRouteMatcher, success } from './helpers'
+import { generateRouteMatcher, success, notFound } from './helpers'
 import { API } from 'types'
 
 const handler: Handler = async (event: APIGatewayEvent) => {
@@ -14,7 +14,7 @@ const handler: Handler = async (event: APIGatewayEvent) => {
 
   // 404
   } else {
-    return { statusCode: 404, body: 'Unknown Route' }
+    return notFound()
   }
 }
 
