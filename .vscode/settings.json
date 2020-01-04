@@ -1,0 +1,15 @@
+{
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "html",
+    "vue"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "jest.pathToJest": "npm run test:unit --",
+  "jest.pathToConfig": "jest.config.js",
+  "vetur.experimental.templateInterpolationService": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
+}
