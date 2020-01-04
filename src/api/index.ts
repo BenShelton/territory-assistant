@@ -9,12 +9,12 @@ async function request<T> (path: string, init: RequestInit): Promise<T> {
 
 const api = {
   settings: {
-    load: () => request<API.Settings.Load.Response>('/settings', { method: 'GET' }),
-    update: (data: API.Settings.Update.Request) => request<API.Settings.Update.Response>('/settings', { method: 'POST', body: JSON.stringify(data) })
+    load: () => request<API.Settings.Load.Response>('settings', { method: 'GET' }),
+    update: (data: API.Settings.Update.Request) => request<API.Settings.Update.Response>('settings', { method: 'POST', body: JSON.stringify(data) })
   },
   territory: {
-    listInfo: () => request<API.Territory.GetInfo.Response>('/territory/info', { method: 'GET' }),
-    updateInfo: (data: API.Territory.UpdateInfo.Request) => request<API.Territory.UpdateInfo.Response>('/territory/info', { method: 'POST', body: JSON.stringify(data) })
+    listInfo: () => request<API.Territory.GetInfo.Response>('territory/info', { method: 'GET' }),
+    updateInfo: (data: API.Territory.UpdateInfo.Request) => request<API.Territory.UpdateInfo.Response>('territory/info', { method: 'POST', body: JSON.stringify(data) })
   }
 }
 

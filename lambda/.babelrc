@@ -2,7 +2,7 @@
   "presets": [
     "@babel/preset-typescript",
     ["@babel/preset-env", {
-      "targets": { "node": "8.1" }
+      "targets": { "node": "12.14" }
     }]
   ],
   "plugins": [
