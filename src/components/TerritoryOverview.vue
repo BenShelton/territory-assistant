@@ -19,7 +19,7 @@
     </v-card>
     <v-dialog v-model="editDialog" persistent :transition="false">
       <v-card height="90vh">
-        <InformationEditor
+        <TerritoryEditor
           :key="editKey"
           :saving="saving"
           @close="closeEditor"
@@ -34,7 +34,7 @@
 import Vue from 'vue'
 
 import store from '@/store'
-import InformationEditor from '@/components/InformationEditor.vue'
+import TerritoryEditor from '@/components/TerritoryEditor.vue'
 
 import { IBoundaryText } from 'types'
 
@@ -48,7 +48,7 @@ export default Vue.extend({
   name: 'TerritoryOverview',
 
   components: {
-    InformationEditor
+    TerritoryEditor
   },
 
   mounted () {
