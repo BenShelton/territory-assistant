@@ -1,4 +1,4 @@
-import { Collection, Db, ObjectID } from 'mongodb'
+import { Collection, Db } from 'mongodb'
 import setup from './setup'
 
 import { IBoundaryText } from 'types'
@@ -18,17 +18,10 @@ export const getInfo = async (): Promise<IBoundaryText[]> => {
   return info as IBoundaryText[]
 }
 
-export const updateInfo = async (infoTexts: CollInfo[]): Promise<void> => {
+export const addInfo = async (info: CollInfo): Promise<CollInfo> => {
   const coll = await getCollection
-  const operations = infoTexts.map(i => {
-    const _id = i._id ? new ObjectID(i._id) : new ObjectID()
-    return {
-      replaceOne: {
-        filter: { _id },
-        replacement: { ...i, _id },
-        upsert: true
-      }
-    }
-  })
-  await coll.bulkWrite(operations, { ordered: false })
+  const newInfoResult = await coll.insertOne(info)
+  const newInfo: CollInfo | null = newInfoResult && newInfoResult.ops && newInfoResult.ops[0]
+  if (!newInfo) throw new Error('Adding New Info was unsuccessful')
+  return newInfo
 }

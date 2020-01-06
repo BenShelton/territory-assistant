@@ -17,9 +17,9 @@ export namespace API {
     export namespace GetInfo {
       export type Response = IBoundaryText[]
     }
-    export namespace UpdateInfo {
-      export type Request = IBoundaryText[]
-      export type Response = IBoundaryText[]
+    export namespace AddInfo {
+      export type Request = IBoundaryText
+      export type Response = IBoundaryText
     }
   }
 }

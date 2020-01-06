@@ -1,15 +1,17 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
-import { getInfo, updateInfo } from './db/info'
+import { getInfo, addInfo } from './db/info'
 import { generateRouteMatcher, success, badRequest, notFound } from './helpers'
 import { IBoundaryText, API } from 'types'
 
-function isBoundaryText (obj: unknown): obj is IBoundaryText[] {
-  if (!Array.isArray(obj)) return false
-  const baseBoundaryText: IBoundaryText = { x: 0, y: 0, content: '' }
-  const keyChecks = Object.entries(baseBoundaryText).map(([k, v]) => ({ key: k, type: typeof v }))
-  // eslint-disable-next-line valid-typeof
-  return obj.every(o => keyChecks.every(check => typeof o[check.key] === check.type))
+function isBoundaryText (obj: unknown): obj is IBoundaryText {
+  if (typeof obj !== 'object' || !obj) return false
+  const baseBoundaryText: IBoundaryText = { lat: 0, lng: 0, content: '' }
+  return Object.entries(baseBoundaryText)
+    .every(([k, v]) => {
+      const val = (obj as Record<string, unknown>)[k]
+      return typeof val === typeof v
+    })
 }
 
 const handler: Handler = async (event: APIGatewayEvent) => {
@@ -25,9 +27,8 @@ const handler: Handler = async (event: APIGatewayEvent) => {
     if (!event.body) return badRequest('No data sent')
     const data: unknown = JSON.parse(event.body)
     if (!isBoundaryText(data)) return badRequest('Invalid set of boundary texts sent')
-    await updateInfo(data)
-    const list = await getInfo()
-    return success<API.Territory.UpdateInfo.Response>(list)
+    const res = await addInfo(data)
+    return success<API.Territory.AddInfo.Response>(res)
 
   // 404
   } else {

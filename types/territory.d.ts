@@ -6,6 +6,6 @@ export interface IBoundaryPoint {
 
 export interface IBoundaryText {
   content: string
-  x: number
-  y: number
+  lat: number
+  lng: number
 }

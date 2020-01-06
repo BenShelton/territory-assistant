@@ -11,19 +11,23 @@ const storeModule: Module<ITerritoryState, IRootState> = {
     loading: false
   },
   actions: {
-    async loadInfo ({ commit }) {
+    async loadInfo ({ commit }): Promise<void> {
       commit('setLoading', true)
       const res = await api.territory.listInfo()
       commit('setInfo', res)
     },
-    async updateInfo ({ commit }, payload: IBoundaryText[]) {
-      const res = await api.territory.updateInfo(payload)
+    async addInfo ({ commit }, payload: IBoundaryText): Promise<IBoundaryText> {
+      const res = await api.territory.addInfo(payload)
       commit('setInfo', res)
+      return res
     }
   },
   mutations: {
     setLoading (state, payload: boolean) {
       state.loading = payload
+    },
+    addInfo (state, payload: IBoundaryText) {
+      state.info.push(payload)
     },
     setInfo (state, payload: IBoundaryText[]) {
       state.info = payload

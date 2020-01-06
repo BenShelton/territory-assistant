@@ -109,13 +109,13 @@ export default Vue.extend({
           ctx.fillStyle = 'yellow'
           ctx.fillRect(x, y, w, h)
           ctx.fillStyle = 'black'
-          ctx.fillText(text.content, text.x, text.y)
+          ctx.fillText(text.content, text.lat, text.lng)
         }
       }
     },
     getTextHitbox (text: IBoundaryText): { x: number, y: number, w: number, h: number } {
       const padding = 4
-      const { x, y, content } = text
+      const { lat: x, lng: y, content } = text
       const w = Math.round(this.ctx.measureText(content).width)
       return { x: x - padding, y: y - padding, w: w + padding * 2, h: 32 + padding * 2 }
     },

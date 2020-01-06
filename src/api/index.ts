@@ -14,7 +14,7 @@ const api = {
   },
   territory: {
     listInfo: () => request<API.Territory.GetInfo.Response>('territory/info', { method: 'GET' }),
-    updateInfo: (data: API.Territory.UpdateInfo.Request) => request<API.Territory.UpdateInfo.Response>('territory/info', { method: 'POST', body: JSON.stringify(data) })
+    addInfo: (data: API.Territory.AddInfo.Request) => request<API.Territory.AddInfo.Response>('territory/info', { method: 'POST', body: JSON.stringify(data) })
   }
 }
 

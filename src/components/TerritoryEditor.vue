@@ -25,9 +25,12 @@ import Vue from 'vue'
 import store from '@/store'
 import { Polygon, CircleMarker } from 'leaflet'
 
+import { IBoundaryText } from 'types'
+
 export default Vue.extend({
   mounted () {
     this.initMap()
+    this.loadInfoTexts()
   },
 
   data () {
@@ -53,13 +56,15 @@ export default Vue.extend({
   },
 
   methods: {
-    initMap () {
-      // Create the map & add the draw layer
+    initMap (): void {
+      // Create the map & add the tile layer
       const { centerLat, centerLng, defaultZoom } = store.state.settings
       const map = this.$leaflet.map('map').setView({ lat: +centerLat, lng: +centerLng }, +defaultZoom)
       this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map)
+
+      // Add the feature layers
       map.addLayer(this.infoLayer)
       map.addLayer(this.territoryLayer)
       map.addLayer(this.mapLayer)
@@ -94,7 +99,19 @@ export default Vue.extend({
       // Handle events
       map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
     },
-    addDrawing (e: L.LeafletEvent): void {
+    loadInfoTexts (): void {
+      const texts = store.state.territory.info
+      texts.forEach((b) => {
+        this.addBoundaryText(b)
+      })
+    },
+    addBoundaryText (e: IBoundaryText): void {
+      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng })
+      layer.bindTooltip(e.content, { permanent: true, interactive: true, direction: 'top' })
+      layer.on({ click: this.onMarkerClick })
+      this.infoLayer.addLayer(layer)
+    },
+    async addDrawing (e: L.LeafletEvent): Promise<void> {
       const { layer } = e
       if (layer instanceof Polygon) {
         this.infoLayer.addLayer(layer)
@@ -112,9 +129,10 @@ export default Vue.extend({
         })
         this.$notification({ type: 'success', text: 'Number of houses: ' + count })
       } else if (layer instanceof CircleMarker) {
-        layer.bindTooltip('0', { permanent: true, interactive: true, direction: 'top' })
-        layer.on({ click: this.onMarkerClick })
-        this.infoLayer.addLayer(layer)
+        const { lat, lng } = layer.getLatLng()
+        const newInfo: IBoundaryText = { content: '0', lat, lng }
+        const res: IBoundaryText = await store.dispatch('territory/addInfo', newInfo)
+        this.addBoundaryText(res)
       } else {
         console.log(layer)
       }
