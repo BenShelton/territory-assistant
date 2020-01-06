@@ -38,4 +38,5 @@ export default Vue.extend({
   right: 5px
   height: auto
   width: auto
+  z-index: 999
 </style>
