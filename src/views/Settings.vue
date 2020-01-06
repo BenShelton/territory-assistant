@@ -35,7 +35,10 @@ import store from '@/store'
 import { ISettings, SettingName, UpdatedSettings } from 'types'
 
 const settingNames: { [key in SettingName]: string } = {
-  src: 'Image Source'
+  src: 'Image Source',
+  centerLat: 'Center Point Latitude',
+  centerLng: 'Center Point Longitude',
+  defaultZoom: 'Default Zoom'
 }
 
 export default Vue.extend({

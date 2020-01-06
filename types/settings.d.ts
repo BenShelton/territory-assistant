@@ -1,4 +1,4 @@
-export type ValidSettings = ['src']
+export type ValidSettings = ['src', 'centerLat', 'centerLng', 'defaultZoom']
 
 export type SettingName = ValidSettings[number]
 

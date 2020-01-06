@@ -6,7 +6,7 @@ import { API, UpdatedSettings, ValidSettings } from 'types'
 
 function isUpdateSettings (obj: unknown): obj is UpdatedSettings {
   if (!Array.isArray(obj)) return false
-  const validSettings: ValidSettings = ['src']
+  const validSettings: ValidSettings = ['src', 'centerLat', 'centerLng', 'defaultZoom']
   return obj.every(o => validSettings.includes(o.key) && typeof o.value === 'string')
 }
 

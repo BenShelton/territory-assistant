@@ -7,7 +7,10 @@ import { ISettingsState, IRootState } from 'types/vuex'
 const storeModule: Module<ISettingsState, IRootState> = {
   namespaced: true,
   state: {
-    src: ''
+    src: '',
+    centerLat: '0',
+    centerLng: '0',
+    defaultZoom: '10'
   },
   actions: {
     async load ({ commit }) {
