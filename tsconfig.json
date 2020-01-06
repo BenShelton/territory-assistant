@@ -13,6 +13,8 @@
     "types": [
       "webpack-env",
       "jest",
+      "leaflet",
+      "leaflet-draw",
       "vuetify"
     ],
     "paths": {
