@@ -4,6 +4,7 @@ import VueRouter, { RouteConfig } from 'vue-router'
 import store from '@/store'
 import Home from '@/views/Home.vue'
 import Maps from '@/views/Maps.vue'
+import Info from '@/views/Info.vue'
 import Settings from '@/views/Settings.vue'
 
 Vue.use(VueRouter)
@@ -18,6 +19,11 @@ const routes: RouteConfig[] = [
     path: '/maps',
     name: 'maps',
     component: Maps
+  },
+  {
+    path: '/info',
+    name: 'info',
+    component: Info
   },
   {
     path: '/settings',
