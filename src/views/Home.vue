@@ -1,22 +1,29 @@
 <template>
-  <v-container>
-    <h1 class="headline">
+  <v-container
+    flex-column
+    flex-nowrap
+    align-start
+    fill-height
+  >
+    <h1 class="headline mb-3">
       Welcome to Territory Assistant
     </h1>
-    <TerritoryOverview />
+    <TerritoryEditor
+      :active-layers="['territory', 'map', 'info']"
+    />
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 
-import TerritoryOverview from '@/components/TerritoryOverview.vue'
+import TerritoryEditor from '@/components/TerritoryEditor.vue'
 
 export default Vue.extend({
   name: 'Home',
 
   components: {
-    TerritoryOverview
+    TerritoryEditor
   }
 })
 </script>

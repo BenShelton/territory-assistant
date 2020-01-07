@@ -1,57 +1,46 @@
 <template>
-  <div class="fill-height d-flex flex-column">
-    <v-toolbar class="editor-toolbar shrink">
-      <v-toolbar-title>Territory Editor</v-toolbar-title>
-      <v-spacer />
-      <template v-if="editMarker">
-        <v-text-field v-model="editMarkerModel" hide-details label="Update House Count" />
-      </template>
-      <v-btn
-        class="ml-3 mr-n1"
-        icon
-        @click="onClose"
-      >
-        <v-icon>mdi-close-circle</v-icon>
-      </v-btn>
-    </v-toolbar>
-
+  <v-card class="editor">
+    <v-fade-transition>
+      <v-overlay v-if="loading" absolute>
+        <v-progress-circular indeterminate />
+      </v-overlay>
+    </v-fade-transition>
     <div id="map" />
-  </div>
+  </v-card>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
+import Vue, { PropType } from 'vue'
 
 import store from '@/store'
-import { Polygon, CircleMarker } from 'leaflet'
+import { Polygon, CircleMarker, Control, DrawMap } from 'leaflet'
 
 import { IBoundaryText } from 'types'
 
+type LayerName = 'territory' | 'map' | 'info'
+
 export default Vue.extend({
+  name: 'TerritoryEditor',
+
+  props: {
+    activeLayers: { type: Array as PropType<LayerName[]>, default: () => [] },
+    toggleLayers: { type: Array as PropType<LayerName[]>, default: () => [] },
+    editLayer: { type: String as PropType<LayerName | ''>, default: '' }
+  },
+
   mounted () {
     this.initMap()
-    this.loadInfoTexts()
   },
 
   data () {
-    return {
-      infoLayer: new this.$leaflet.FeatureGroup(),
-      territoryLayer: new this.$leaflet.FeatureGroup(),
-      mapLayer: new this.$leaflet.FeatureGroup(),
-      editMarker: null as CircleMarker | null
+    const layers: Record<LayerName, L.FeatureGroup> = {
+      territory: new this.$leaflet.FeatureGroup(),
+      map: new this.$leaflet.FeatureGroup(),
+      info: new this.$leaflet.FeatureGroup()
     }
-  },
-
-  computed: {
-    editMarkerModel: {
-      get (): string {
-        if (!this.editMarker) return ''
-        return (this.editMarker.getTooltip() as L.Tooltip).getContent() as string
-      },
-      set (val: string) {
-        if (!this.editMarker) return
-        this.editMarker.setTooltipContent(val)
-      }
+    return {
+      loading: true,
+      layers
     }
   },
 
@@ -59,21 +48,58 @@ export default Vue.extend({
     initMap (): void {
       // Create the map & add the tile layer
       const { centerLat, centerLng, defaultZoom } = store.state.settings
-      const map = this.$leaflet.map('map').setView({ lat: +centerLat, lng: +centerLng }, +defaultZoom)
-      this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      const tileLayer = this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map)
+      })
+      const map = this.$leaflet.map('map', {
+        center: { lat: +centerLat, lng: +centerLng },
+        zoom: +defaultZoom,
+        layers: [tileLayer]
+      })
 
-      // Add the feature layers
-      map.addLayer(this.infoLayer)
-      map.addLayer(this.territoryLayer)
-      map.addLayer(this.mapLayer)
+      for (const l of this.activeLayers) {
+        const layer = this.layers[l]
+        map.addLayer(layer)
+        this.loadLayer(layer)
+      }
+      if (this.toggleLayers.length) {
+        const layerMap: Record<LayerName, string> = {
+          territory: 'Territory',
+          map: 'Map',
+          info: 'Info'
+        }
+        const overlays = this.toggleLayers.reduce((acc: Record<typeof layerMap[LayerName], L.FeatureGroup>, l) => {
+          acc[layerMap[l]] = this.layers[l]
+          return acc
+        }, {})
+        this.$leaflet.control.layers({}, overlays).addTo(map)
+      }
 
-      // Create the drawing controls
-      const drawControl = new this.$leaflet.Control.Draw({
-        position: 'topright',
-        draw: {
-          polygon: {
+      this.addEditLayer(map)
+
+      // Handle events
+      map.on('overlayadd', this.onOverlayAdd)
+      map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
+
+      this.loading = false
+    },
+    addEditLayer (map: DrawMap): void {
+      if (!this.editLayer) return
+      const drawOptions: Control.DrawOptions = {
+        polygon: false,
+        polyline: false,
+        rectangle: false,
+        marker: false,
+        circle: false,
+        circlemarker: false
+      }
+      switch (this.editLayer) {
+        case 'info':
+          drawOptions.circlemarker = {}
+          break
+        case 'territory':
+        case 'map':
+          drawOptions.polygon = {
             allowIntersection: false,
             drawError: {
               color: '#e1e100',
@@ -82,41 +108,52 @@ export default Vue.extend({
             shapeOptions: {
               color: '#97009c'
             }
-          },
-          polyline: false,
-          circle: false,
-          rectangle: false,
-          marker: false
-          // circlemarker: false
-        },
+          }
+      }
+      const drawControl = new this.$leaflet.Control.Draw({
+        position: 'topright',
+        draw: drawOptions,
         edit: {
-          featureGroup: this.infoLayer,
+          featureGroup: this.layers[this.editLayer],
           remove: false
         }
       })
       map.addControl(drawControl)
-
-      // Handle events
-      map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
     },
-    loadInfoTexts (): void {
+    onOverlayAdd (e: L.LeafletEvent): void {
+      this.loadLayer(e.layer)
+    },
+    async loadLayer (layer: L.FeatureGroup): Promise<void> {
+      this.loading = true
+      try {
+        switch (layer) {
+          case this.layers.info:
+            await this.loadInfoTexts()
+        }
+      } finally {
+        this.loading = false
+      }
+    },
+    async loadInfoTexts (): Promise<void> {
+      await store.dispatch('territory/loadInfo')
       const texts = store.state.territory.info
+      this.layers.info.clearLayers()
       texts.forEach((b) => {
         this.addBoundaryText(b)
       })
     },
     addBoundaryText (e: IBoundaryText): void {
-      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng })
+      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue' })
       layer.bindTooltip(e.content, { permanent: true, interactive: true, direction: 'top' })
       layer.on({ click: this.onMarkerClick })
-      this.infoLayer.addLayer(layer)
+      this.layers.info.addLayer(layer)
     },
     async addDrawing (e: L.LeafletEvent): Promise<void> {
       const { layer } = e
       if (layer instanceof Polygon) {
-        this.infoLayer.addLayer(layer)
+        this.layers.info.addLayer(layer)
         let count = 0
-        this.infoLayer.eachLayer(l => {
+        this.layers.info.eachLayer(l => {
           if (l instanceof CircleMarker) {
             if (this.markerWithinPolygon(l, layer)) {
               const tooltip = l.getTooltip()
@@ -149,23 +186,31 @@ export default Vue.extend({
       }
       return inside
     },
+    deselectMarker (): void {
+      // if (this.editMarker) {
+      //   this.editMarker.setStyle({ color: 'blue' })
+      // }
+      // this.editMarker = null
+    },
     selectMarker (layer: CircleMarker): void {
-      this.editMarker = layer
+      this.deselectMarker()
+      // this.editMarker = layer
+      layer.setStyle({ color: 'green' })
     },
     onMarkerClick (e: L.LeafletMouseEvent): void {
       this.selectMarker(e.target)
-    },
-    onClose (): void {
-      this.$emit('close')
     }
   }
 })
 </script>
 
 <style lang="sass" scoped>
-#map
-  height: calc(100% - 64px)
+.editor
+  position: relative
+  height: 100%
   width: 100%
-.editor-toolbar
-  z-index: 500
+#map
+  height: 100%
+  width: 100%
+  z-index: 0
 </style>
