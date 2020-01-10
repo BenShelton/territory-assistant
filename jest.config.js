@@ -5,6 +5,7 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^UnitTest/(.*)$': '<rootDir>/tests/unit/$1'
+    '^UnitTest/(.*)$': '<rootDir>/tests/unit/$1',
+    '\\.(css|sass|scss)$': 'identity-obj-proxy'
   }
 }

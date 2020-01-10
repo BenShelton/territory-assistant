@@ -13,7 +13,7 @@
 import Vue, { PropType } from 'vue'
 
 import store from '@/store'
-import { Polygon, CircleMarker, Control, DrawMap } from 'leaflet'
+import { Polygon, CircleMarker, Control, DrawMap, DrawEvents } from 'leaflet'
 
 import { IBoundaryText } from 'types'
 
@@ -58,9 +58,7 @@ export default Vue.extend({
       })
 
       for (const l of this.activeLayers) {
-        const layer = this.layers[l]
-        map.addLayer(layer)
-        this.loadLayer(layer)
+        this.addLayer(l, map)
       }
       if (this.toggleLayers.length) {
         const layerMap: Record<LayerName, string> = {
@@ -79,7 +77,6 @@ export default Vue.extend({
 
       // Handle events
       map.on('overlayadd', this.onOverlayAdd)
-      map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
 
       this.loading = false
     },
@@ -113,12 +110,19 @@ export default Vue.extend({
       const drawControl = new this.$leaflet.Control.Draw({
         position: 'topright',
         draw: drawOptions,
-        edit: {
-          featureGroup: this.layers[this.editLayer],
-          remove: false
-        }
+        edit: { featureGroup: this.layers[this.editLayer] }
       })
       map.addControl(drawControl)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.DELETED, this.removeDrawings)
+      this.addLayer(this.editLayer, map)
+    },
+    addLayer (name: LayerName, map: DrawMap) {
+      const layer = this.layers[name]
+      map.addLayer(layer)
+      this.loadLayer(layer)
     },
     onOverlayAdd (e: L.LeafletEvent): void {
       this.loadLayer(e.layer)
@@ -143,12 +147,13 @@ export default Vue.extend({
       })
     },
     addBoundaryText (e: IBoundaryText): void {
-      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue' })
+      // @ts-ignore
+      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id })
       layer.bindTooltip(e.content, { permanent: true, interactive: true, direction: 'top' })
       layer.on({ click: this.onMarkerClick })
       this.layers.info.addLayer(layer)
     },
-    async addDrawing (e: L.LeafletEvent): Promise<void> {
+    async addDrawing (e: DrawEvents.Created): Promise<void> {
       const { layer } = e
       if (layer instanceof Polygon) {
         this.layers.info.addLayer(layer)
@@ -173,6 +178,26 @@ export default Vue.extend({
       } else {
         console.log(layer)
       }
+    },
+    async removeDrawings (e: DrawEvents.Deleted): Promise<void> {
+      e.layers.eachLayer(async layer => {
+        if (layer instanceof Polygon) {
+
+        } else if (layer instanceof CircleMarker) {
+          try {
+            // @ts-ignore
+            await store.dispatch('territory/deleteInfo', layer.options.customId)
+            this.layers.info.removeLayer(layer)
+            this.$notification({ type: 'success', text: 'Deleted information marker' })
+          } catch {
+            this.layers.info.addLayer(layer)
+            this.$notification({ type: 'error', text: 'Could not delete information marker' })
+          }
+        } else {
+          this.$notification({ type: 'error', text: 'No handler to remove this layer type' })
+          console.log(layer)
+        }
+      })
     },
     markerWithinPolygon (marker: CircleMarker, polygon: Polygon): boolean {
       const polyPoints = (polygon.getLatLngs() as L.LatLng[][])[0]

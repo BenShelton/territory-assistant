@@ -1,7 +1,7 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
-import { getInfo, addInfo } from './db/info'
-import { generateRouteMatcher, success, badRequest, notFound } from './helpers'
+import { getInfo, addInfo, deleteInfo } from './db/info'
+import { success, badRequest, notFound, RouteMatcher } from './helpers'
 import { IBoundaryText, API } from 'types'
 
 function isBoundaryText (obj: unknown): obj is IBoundaryText {
@@ -15,20 +15,27 @@ function isBoundaryText (obj: unknown): obj is IBoundaryText {
 }
 
 const handler: Handler = async (event: APIGatewayEvent) => {
-  const matcher = generateRouteMatcher(event)
+  const matcher = new RouteMatcher(event)
 
   // GET /info
-  if (matcher('GET', '/info')) {
+  if (matcher.testRoute('GET', '/info')) {
     const list = await getInfo()
     return success<API.Territory.GetInfo.Response>(list)
 
   // POST /info
-  } else if (matcher('POST', '/info')) {
+  } else if (matcher.testRoute('POST', '/info')) {
     if (!event.body) return badRequest('No data sent')
     const data: unknown = JSON.parse(event.body)
     if (!isBoundaryText(data)) return badRequest('Invalid set of boundary texts sent')
     const res = await addInfo(data)
     return success<API.Territory.AddInfo.Response>(res)
+
+  // DELETE /info/:id
+  } else if (matcher.testRoute('DELETE', '/info/:id')) {
+    const { id } = matcher.pathParams
+    if (id) return badRequest('Invalid ID')
+    await deleteInfo(id)
+    return success<API.Territory.DeleteInfo.Response>(true)
 
   // 404
   } else {

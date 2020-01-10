@@ -20,6 +20,10 @@ const storeModule: Module<ITerritoryState, IRootState> = {
       const res = await api.territory.addInfo(payload)
       commit('setInfo', res)
       return res
+    },
+    async deleteInfo ({ commit }, payload: string): Promise<void> {
+      const res = await api.territory.deleteInfo(payload)
+      commit('removeInfo', res)
     }
   },
   mutations: {
@@ -32,6 +36,10 @@ const storeModule: Module<ITerritoryState, IRootState> = {
     setInfo (state, payload: IBoundaryText[]) {
       state.info = payload
       state.loading = false
+    },
+    removeInfo (state, payload: string) {
+      const index = state.info.findIndex(i => i._id === payload)
+      if (index !== -1) state.info.splice(index, 1)
     }
   }
 }

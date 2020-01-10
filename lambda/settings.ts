@@ -1,7 +1,7 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
 import { getSettings, updateSettings } from './db/settings'
-import { generateRouteMatcher, success, badRequest, notFound } from './helpers'
+import { success, badRequest, notFound, RouteMatcher } from './helpers'
 import { API, UpdatedSettings, ValidSettings } from 'types'
 
 function isUpdateSettings (obj: unknown): obj is UpdatedSettings {
@@ -11,15 +11,15 @@ function isUpdateSettings (obj: unknown): obj is UpdatedSettings {
 }
 
 const handler: Handler = async (event: APIGatewayEvent) => {
-  const matcher = generateRouteMatcher(event)
+  const matcher = new RouteMatcher(event)
 
   // GET /settings
-  if (matcher('GET', '/settings')) {
+  if (matcher.testRoute('GET', '/settings')) {
     const settings = await getSettings()
     return success<API.Settings.Load.Response>(settings)
 
   // POST /settings
-  } else if (matcher('POST', '/settings')) {
+  } else if (matcher.testRoute('POST', '/settings')) {
     if (!event.body) return badRequest('No data sent')
     const data: unknown = JSON.parse(event.body)
     if (!isUpdateSettings(data)) return badRequest('Invalid settings sent')

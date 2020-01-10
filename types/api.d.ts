@@ -5,6 +5,7 @@ import { UpdatedSettings } from './settings'
 export namespace API {
   export namespace Settings {
     export namespace Load {
+      export type Request = void
       export type Response = ISettings
     }
     export namespace Update {
@@ -20,6 +21,11 @@ export namespace API {
     export namespace AddInfo {
       export type Request = IBoundaryText
       export type Response = IBoundaryText
+    }
+
+    export namespace DeleteInfo {
+      export type Request = string
+      export type Response = true
     }
   }
 }

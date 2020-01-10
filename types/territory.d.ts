@@ -5,6 +5,7 @@ export interface IBoundaryPoint {
 }
 
 export interface IBoundaryText {
+  _id?: string
   content: string
   lat: number
   lng: number
