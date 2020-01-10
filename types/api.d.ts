@@ -23,6 +23,11 @@ export namespace API {
       export type Response = IBoundaryText
     }
 
+    export namespace UpdateInfo {
+      export type Request = IBoundaryText
+      export type Response = IBoundaryText
+    }
+
     export namespace DeleteInfo {
       export type Request = string
       export type Response = true

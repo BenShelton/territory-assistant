@@ -1,6 +1,6 @@
 import { APIGatewayEvent } from 'aws-lambda'
 
-type APIMethod = 'GET' | 'POST' | 'DELETE'
+type APIMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 interface IResult {
   statusCode: number
   body: string

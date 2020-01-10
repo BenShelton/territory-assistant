@@ -1,4 +1,4 @@
-import { Collection, Db, ObjectID } from 'mongodb'
+import { Collection, Db, ObjectID, UpdateQuery } from 'mongodb'
 import setup from './setup'
 
 import { IBoundaryText, API } from 'types'
@@ -24,6 +24,17 @@ export async function addInfo (info: API.Territory.AddInfo.Request): Promise<Col
   const newInfo: CollInfo | null = newInfoResult && newInfoResult.ops && newInfoResult.ops[0]
   if (!newInfo) throw new Error('Adding New Info was unsuccessful')
   return newInfo
+}
+
+export async function updateInfo (id: string, info: API.Territory.UpdateInfo.Request): Promise<CollInfo> {
+  const coll = await getCollection
+  const query = { _id: new ObjectID(id) }
+  const updateInfo = { ...info }
+  delete updateInfo._id
+  const update: UpdateQuery<CollInfo> = { $set: updateInfo }
+  const { value } = await coll.findOneAndUpdate(query, update, { returnOriginal: false })
+  if (!value) throw new Error('Updating Info was unsuccessful')
+  return value
 }
 
 export async function deleteInfo (id: API.Territory.DeleteInfo.Request): Promise<void> {

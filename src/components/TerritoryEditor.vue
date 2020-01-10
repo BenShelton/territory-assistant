@@ -93,6 +93,8 @@ export default Vue.extend({
       switch (this.editLayer) {
         case 'info':
           drawOptions.circlemarker = {}
+          this.$leaflet.drawLocal.draw.toolbar.buttons.circlemarker = 'Add an Information Marker'
+          this.$leaflet.drawLocal.draw.handlers.circlemarker.tooltip.start = 'Click map to place Information Marker'
           break
         case 'territory':
         case 'map':
@@ -115,6 +117,8 @@ export default Vue.extend({
       map.addControl(drawControl)
       // @ts-ignore
       map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.EDITED, this.editDrawings)
       // @ts-ignore
       map.on(this.$leaflet.Draw.Event.DELETED, this.removeDrawings)
       this.addLayer(this.editLayer, map)
@@ -178,6 +182,29 @@ export default Vue.extend({
       } else {
         console.log(layer)
       }
+    },
+    async editDrawings (e: DrawEvents.Edited): Promise<void> {
+      e.layers.eachLayer(async layer => {
+        if (layer instanceof Polygon) {
+
+        } else if (layer instanceof CircleMarker) {
+          try {
+            const { lat, lng } = layer.getLatLng()
+            const tooltip = layer.getTooltip()
+            const content = tooltip ? String(tooltip.getContent()) : '0'
+            const updatedInfo: IBoundaryText = { content, lat, lng }
+            // @ts-ignore
+            updatedInfo._id = layer.options.customId
+            await store.dispatch('territory/updateInfo', updatedInfo)
+            this.$notification({ type: 'success', text: 'Edited information marker' })
+          } catch {
+            this.$notification({ type: 'error', text: 'Could not edit information marker' })
+          }
+        } else {
+          this.$notification({ type: 'error', text: 'No handler to edit this layer type' })
+          console.log(layer)
+        }
+      })
     },
     async removeDrawings (e: DrawEvents.Deleted): Promise<void> {
       e.layers.eachLayer(async layer => {
