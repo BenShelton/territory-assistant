@@ -5,6 +5,31 @@
         <v-progress-circular indeterminate />
       </v-overlay>
     </v-fade-transition>
+    <v-row
+      v-if="editLayer === 'info'"
+      align="center"
+      justify="end"
+      class="px-4"
+    >
+      <v-col cols="10" sm="6" lg="3">
+        <v-text-field
+          v-model="activeInfoText"
+          solo
+          hide-details
+          :disabled="!activeDrawing"
+        />
+      </v-col>
+      <v-col cols="2">
+        <template v-if="activeDrawing">
+          <v-btn icon color="success" @click="onUpdateMarkerText">
+            <v-icon>mdi-check-circle</v-icon>
+          </v-btn>
+          <v-btn icon color="error" @click="deselectDrawing">
+            <v-icon>mdi-cancel</v-icon>
+          </v-btn>
+        </template>
+      </v-col>
+    </v-row>
     <div id="map" />
   </v-card>
 </template>
@@ -40,7 +65,10 @@ export default Vue.extend({
     }
     return {
       loading: true,
-      layers
+      layers,
+      activeDrawing: null as CircleMarker | null,
+      activeInfoText: 'Click marker to edit text',
+      deleteMode: false
     }
   },
 
@@ -82,6 +110,9 @@ export default Vue.extend({
     },
     addEditLayer (map: DrawMap): void {
       if (!this.editLayer) return
+      this.$leaflet.EditToolbar.Delete.include({
+        removeAllLayers: false
+      })
       const drawOptions: Control.DrawOptions = {
         polygon: false,
         polyline: false,
@@ -93,8 +124,7 @@ export default Vue.extend({
       switch (this.editLayer) {
         case 'info':
           drawOptions.circlemarker = {}
-          this.$leaflet.drawLocal.draw.toolbar.buttons.circlemarker = 'Add an Information Marker'
-          this.$leaflet.drawLocal.draw.handlers.circlemarker.tooltip.start = 'Click map to place Information Marker'
+          this.updateToolTexts('circlemarker', 'Information Marker')
           break
         case 'territory':
         case 'map':
@@ -115,13 +145,28 @@ export default Vue.extend({
         edit: { featureGroup: this.layers[this.editLayer] }
       })
       map.addControl(drawControl)
+      map.on('click', this.deselectDrawing)
       // @ts-ignore
       map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
       // @ts-ignore
       map.on(this.$leaflet.Draw.Event.EDITED, this.editDrawings)
       // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.DELETESTART, this.onDeleteStart)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.DELETESTOP, this.onDeleteStop)
+      // @ts-ignore
       map.on(this.$leaflet.Draw.Event.DELETED, this.removeDrawings)
       this.addLayer(this.editLayer, map)
+    },
+    updateToolTexts (toolbarItem: 'circlemarker', drawingName: string): void {
+      this.$leaflet.drawLocal.draw.toolbar.buttons[toolbarItem] = `Add ${drawingName}`
+      this.$leaflet.drawLocal.draw.handlers[toolbarItem].tooltip.start = `Click map to add a new ${drawingName}.`
+      this.$leaflet.drawLocal.edit.toolbar.buttons.edit = `Move ${drawingName}(s)`
+      this.$leaflet.drawLocal.edit.toolbar.buttons.editDisabled = `No ${drawingName}s to move`
+      this.$leaflet.drawLocal.edit.toolbar.buttons.remove = `Delete ${drawingName}(s)`
+      this.$leaflet.drawLocal.edit.toolbar.buttons.removeDisabled = `No ${drawingName}s to delete`
+      this.$leaflet.drawLocal.edit.handlers.edit.tooltip.text = `Drag handles or markers to edit ${drawingName}s.`
+      this.$leaflet.drawLocal.edit.handlers.remove.tooltip.text = `Click to remove ${drawingName}s.`
     },
     addLayer (name: LayerName, map: DrawMap) {
       const layer = this.layers[name]
@@ -150,12 +195,20 @@ export default Vue.extend({
         this.addBoundaryText(b)
       })
     },
-    addBoundaryText (e: IBoundaryText): void {
+    addBoundaryText (e: IBoundaryText): CircleMarker {
       // @ts-ignore
       const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id })
       layer.bindTooltip(e.content, { permanent: true, interactive: true, direction: 'top' })
-      layer.on({ click: this.onMarkerClick })
+      layer.on({ click: this.onDrawingClick })
       this.layers.info.addLayer(layer)
+      return layer
+    },
+    onDeleteStart (): void {
+      this.deleteMode = true
+      this.deselectDrawing()
+    },
+    onDeleteStop (): void {
+      this.deleteMode = false
     },
     async addDrawing (e: DrawEvents.Created): Promise<void> {
       const { layer } = e
@@ -178,7 +231,8 @@ export default Vue.extend({
         const { lat, lng } = layer.getLatLng()
         const newInfo: IBoundaryText = { content: '0', lat, lng }
         const res: IBoundaryText = await store.dispatch('territory/addInfo', newInfo)
-        this.addBoundaryText(res)
+        const newLayer = this.addBoundaryText(res)
+        this.selectDrawing(newLayer)
       } else {
         console.log(layer)
       }
@@ -226,6 +280,23 @@ export default Vue.extend({
         }
       })
     },
+    async onUpdateMarkerText (): Promise<void> {
+      if (!this.activeDrawing) return
+      try {
+        const { lat, lng } = this.activeDrawing.getLatLng()
+        const content = this.activeInfoText.trim() || '0'
+        const updatedInfo: IBoundaryText = { content, lat, lng }
+        // @ts-ignore
+        updatedInfo._id = this.activeDrawing.options.customId
+        await store.dispatch('territory/updateInfo', updatedInfo)
+        const tooltip = this.activeDrawing.getTooltip()
+        if (tooltip) tooltip.setContent(content)
+        this.deselectDrawing()
+        this.$notification({ type: 'success', text: 'Updated information marker text' })
+      } catch {
+        this.$notification({ type: 'error', text: 'Could not update information marker text' })
+      }
+    },
     markerWithinPolygon (marker: CircleMarker, polygon: Polygon): boolean {
       const polyPoints = (polygon.getLatLngs() as L.LatLng[][])[0]
       const { lat: x, lng: y } = marker.getLatLng()
@@ -238,19 +309,24 @@ export default Vue.extend({
       }
       return inside
     },
-    deselectMarker (): void {
-      // if (this.editMarker) {
-      //   this.editMarker.setStyle({ color: 'blue' })
-      // }
-      // this.editMarker = null
+    deselectDrawing (): void {
+      if (this.activeDrawing) {
+        this.activeDrawing.setStyle({ color: 'blue' })
+      }
+      this.activeDrawing = null
+      this.activeInfoText = 'Click marker to edit text'
     },
-    selectMarker (layer: CircleMarker): void {
-      this.deselectMarker()
-      // this.editMarker = layer
+    selectDrawing (layer: CircleMarker): void {
+      this.deselectDrawing()
+      this.activeDrawing = layer
+      const tooltip = layer.getTooltip()
+      this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
       layer.setStyle({ color: 'green' })
     },
-    onMarkerClick (e: L.LeafletMouseEvent): void {
-      this.selectMarker(e.target)
+    onDrawingClick (e: L.LeafletMouseEvent): void {
+      if (this.deleteMode) return
+      this.$leaflet.DomEvent.stopPropagation(e)
+      this.selectDrawing(e.target)
     }
   }
 })
