@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Views/Home should match the snapshot 1`] = `
+<div class="container flex-column flex-nowrap align-start fill-height">
+  <h1 class="headline mb-3">
+    Welcome to Territory Assistant
+  </h1>
+  <div class="editor v-card v-sheet theme--light">
+    <!---->
+    <!---->
+    <div id="map"></div>
+  </div>
+</div>
+`;

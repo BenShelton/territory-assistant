@@ -6,10 +6,11 @@
     fill-height
   >
     <h1 class="headline mb-3">
-      Welcome to Territory Assistant
+      Edit Information Markers
     </h1>
     <TerritoryEditor
-      :active-layers="['territory', 'map', 'info']"
+      edit-layer="info"
+      :toggle-layers="['territory', 'map']"
     />
   </v-container>
 </template>
@@ -20,7 +21,7 @@ import Vue from 'vue'
 import TerritoryEditor from '@/components/TerritoryEditor.vue'
 
 export default Vue.extend({
-  name: 'Home',
+  name: 'Info',
 
   components: {
     TerritoryEditor

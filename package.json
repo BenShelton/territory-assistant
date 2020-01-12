@@ -4,22 +4,41 @@
   "private": true,
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "serve": "npm-run-all --parallel serve:**",
+    "serve:app": "vue-cli-service serve",
+    "serve:lambda": "netlify-lambda serve lambda",
+    "build": "npm-run-all --parallel build:**",
+    "build:app": "vue-cli-service build",
+    "build:lambda": "netlify-lambda build lambda",
+    "test": "npm run lint -- --no-fix && npm run test:unit -- --bail",
     "test:unit": "vue-cli-service test:unit",
+    "test:unit:watch": "npm run test:unit -- --watch",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@mdi/font": "^3.6.95",
+    "@mdi/font": "^4.5.95",
     "core-js": "^3.3.2",
+    "dotenv": "^8.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "leaflet": "^1.6.0",
+    "leaflet-draw": "^1.0.4",
+    "mongodb": "^3.3.4",
     "roboto-fontface": "*",
     "vue": "^2.6.10",
     "vue-router": "^3.1.3",
     "vuetify": "^2.1.0",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "vuex-persistedstate": "^2.7.0"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.6.0",
+    "@types/aws-lambda": "^8.10.34",
     "@types/jest": "^24.0.11",
+    "@types/jsonwebtoken": "^8.3.5",
+    "@types/leaflet": "^1.5.7",
+    "@types/leaflet-draw": "^1.0.1",
+    "@types/mongodb": "^3.3.10",
+    "@types/node": "^12.12.5",
     "@vue/cli-plugin-babel": "^4.0.0",
     "@vue/cli-plugin-eslint": "^4.0.0",
     "@vue/cli-plugin-router": "^4.0.0",
@@ -34,8 +53,11 @@
     "cz-conventional-changelog": "^3.0.2",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
+    "identity-obj-proxy": "^3.0.0",
     "lint-staged": "^9.4.2",
+    "netlify-lambda": "^1.6.3",
     "node-sass": "^4.12.0",
+    "npm-run-all": "^4.1.5",
     "sass": "^1.19.0",
     "sass-loader": "^8.0.0",
     "typescript": "~3.5.3",
@@ -44,8 +66,9 @@
     "vuetify-loader": "^1.3.0"
   },
   "gitHooks": {
+    "pre-commit": "lint-staged",
     "prepare-commit-msg": "exec < /dev/tty && git cz --hook",
-    "pre-commit": "lint-staged"
+    "pre-push": "npm run test"
   },
   "config": {
     "commitizen": {
@@ -55,7 +78,8 @@
   "lint-staged": {
     "*.{js,vue,ts}": [
       "vue-cli-service lint",
-      "git add"
+      "git add",
+      "vue-cli-service test:unit --findRelatedTests --bail"
     ]
   }
 }

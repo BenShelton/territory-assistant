@@ -13,11 +13,16 @@
     "types": [
       "webpack-env",
       "jest",
+      "leaflet",
+      "leaflet-draw",
       "vuetify"
     ],
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "UnitTest/*": [
+        "tests/unit/*"
       ]
     },
     "lib": [
@@ -33,7 +38,8 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
+    "lambda/**/*.ts"
   ],
   "exclude": [
     "node_modules"

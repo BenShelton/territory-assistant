@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Views/Maps should match the snapshot 1`] = `
+<div class="container">
+  <h1 class="headline">
+    Maps
+  </h1>
+</div>
+`;
