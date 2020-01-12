@@ -1,7 +1,9 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
+import { validateToken } from './db/auth'
 import { getSettings, updateSettings } from './db/settings'
-import { success, badRequest, notFound, RouteMatcher } from './helpers'
+import { success, badRequest, notFound, RouteMatcher, unauthorized } from './helpers'
+
 import { API, UpdatedSettings, ValidSettings } from 'types'
 
 function isUpdateSettings (obj: unknown): obj is UpdatedSettings {
@@ -11,6 +13,12 @@ function isUpdateSettings (obj: unknown): obj is UpdatedSettings {
 }
 
 const handler: Handler = async (event: APIGatewayEvent) => {
+  try {
+    await validateToken(event)
+  } catch {
+    return unauthorized()
+  }
+
   const matcher = new RouteMatcher(event)
 
   // GET /settings
@@ -26,11 +34,10 @@ const handler: Handler = async (event: APIGatewayEvent) => {
     await updateSettings(data)
     const settings = await getSettings()
     return success<API.Settings.Update.Response>(settings)
+  }
 
   // 404
-  } else {
-    return notFound()
-  }
+  return notFound()
 }
 
 export { handler }

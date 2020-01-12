@@ -1,7 +1,9 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
+import { validateToken } from './db/auth'
 import { getInfo, addInfo, updateInfo, deleteInfo } from './db/info'
-import { success, badRequest, notFound, RouteMatcher } from './helpers'
+import { success, badRequest, notFound, RouteMatcher, unauthorized } from './helpers'
+
 import { IBoundaryText, API } from 'types'
 
 function isBoundaryText (obj: unknown): obj is IBoundaryText {
@@ -15,6 +17,12 @@ function isBoundaryText (obj: unknown): obj is IBoundaryText {
 }
 
 const handler: Handler = async (event: APIGatewayEvent) => {
+  try {
+    await validateToken(event)
+  } catch {
+    return unauthorized()
+  }
+
   const matcher = new RouteMatcher(event)
 
   // GET /info
@@ -46,11 +54,10 @@ const handler: Handler = async (event: APIGatewayEvent) => {
     if (!id) return badRequest('Invalid ID')
     await deleteInfo(id)
     return success<API.Territory.DeleteInfo.Response>(true)
+  }
 
   // 404
-  } else {
-    return notFound()
-  }
+  return notFound()
 }
 
 export { handler }

@@ -1,6 +1,6 @@
 <template>
   <v-app-bar app>
-    <v-app-bar-nav-icon @click.stop="toggleDrawer" />
+    <v-app-bar-nav-icon v-if="loggedIn" @click.stop="toggleDrawer" />
     <v-toolbar-title class="headline">
       <span>Territory Assistant</span>
     </v-toolbar-title>
@@ -14,6 +14,10 @@ import store from '@/store'
 
 export default Vue.extend({
   name: 'AppBar',
+
+  computed: {
+    loggedIn (): boolean { return store.getters['auth/loggedIn'] }
+  },
 
   methods: {
     toggleDrawer (): void {

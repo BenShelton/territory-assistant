@@ -1,5 +1,9 @@
 import { IMap, INotification, ISettings, IBoundaryText } from 'types'
 
+export interface IAuthState {
+  token: string
+}
+
 export interface IDrawerState {
   open: boolean
 }
@@ -21,6 +25,7 @@ export interface ITerritoryState {
 }
 
 export interface IRootState {
+  auth: IAuthState
   drawer: IDrawerState
   map: IMapState
   notification: INotificationState

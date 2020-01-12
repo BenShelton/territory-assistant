@@ -14,6 +14,14 @@
         <v-list-item-title v-text="item.title" />
       </v-list-item>
     </v-list>
+    <v-list nav>
+      <v-list-item @click="logout">
+        <v-list-item-icon>
+          <v-icon>mdi-logout-variant</v-icon>
+        </v-list-item-icon>
+        <v-list-item-title>Logout</v-list-item-title>
+      </v-list-item>
+    </v-list>
   </v-navigation-drawer>
 </template>
 
@@ -47,6 +55,10 @@ export default Vue.extend({
   methods: {
     closeDrawer (): void {
       this.drawer = false
+    },
+    async logout (): Promise<void> {
+      await store.dispatch('auth/logout')
+      this.$router.push('/login')
     }
   }
 })

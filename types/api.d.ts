@@ -1,8 +1,20 @@
 import { IBoundaryText } from './territory'
-import { ISettings } from 'types'
+import { ISettings, ILoginRequest, ILoginResponse } from 'types'
 import { UpdatedSettings } from './settings'
 
 export namespace API {
+  export namespace Auth {
+    export namespace Login {
+      export type Request = ILoginRequest
+      export type Response = ILoginResponse
+    }
+
+    export namespace Logout {
+      export type Request = void
+      export type Response = true
+    }
+  }
+
   export namespace Settings {
     export namespace Load {
       export type Request = void
