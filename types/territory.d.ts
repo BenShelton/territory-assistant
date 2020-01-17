@@ -1,3 +1,6 @@
+export type IInfoTypes = ['Houses', 'Flats', 'Comment', 'Todo']
+export type IInfoType = IInfoTypes[number]
+
 export interface IBoundaryPoint {
   x: number
   y: number
@@ -9,4 +12,5 @@ export interface IBoundaryText {
   content: string
   lat: number
   lng: number
+  type: IInfoType
 }

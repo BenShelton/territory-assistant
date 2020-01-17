@@ -8,7 +8,7 @@ import { IBoundaryText, API } from 'types'
 
 function isBoundaryText (obj: unknown): obj is IBoundaryText {
   if (typeof obj !== 'object' || !obj) return false
-  const baseBoundaryText: IBoundaryText = { lat: 0, lng: 0, content: '' }
+  const baseBoundaryText: IBoundaryText = { lat: 0, lng: 0, content: '', type: 'Houses' }
   return Object.entries(baseBoundaryText)
     .every(([k, v]) => {
       const val = (obj as Record<string, unknown>)[k]

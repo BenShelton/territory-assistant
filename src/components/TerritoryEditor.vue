@@ -5,31 +5,30 @@
         <v-progress-circular indeterminate />
       </v-overlay>
     </v-fade-transition>
-    <v-row
-      v-if="editLayer === 'info'"
-      align="center"
-      justify="end"
-      class="px-4"
-    >
-      <v-col cols="10" sm="6" lg="3">
-        <v-text-field
-          v-model="activeInfoText"
-          solo
-          hide-details
-          :disabled="!activeDrawing"
-        />
-      </v-col>
-      <v-col cols="2">
-        <template v-if="activeDrawing">
-          <v-btn icon color="success" @click="onUpdateMarkerText">
-            <v-icon>mdi-check-circle</v-icon>
+    <v-dialog v-model="dialogOpen" max-width="300">
+      <v-card>
+        <v-card-title>Edit Marker</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="activeInfoText" label="Text" />
+          <v-radio-group v-model="activeInfoType">
+            <v-radio
+              v-for="infoType of infoTypes"
+              :key="infoType"
+              :label="infoType"
+              :value="infoType"
+            />
+          </v-radio-group>
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="error" @click="deselectDrawing">
+            CANCEL
           </v-btn>
-          <v-btn icon color="error" @click="deselectDrawing">
-            <v-icon>mdi-cancel</v-icon>
+          <v-btn color="success" @click="onUpdateMarkerText">
+            SAVE
           </v-btn>
-        </template>
-      </v-col>
-    </v-row>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-btn
       v-if="editLayer === 'info'"
       color="primary"
@@ -48,7 +47,7 @@ import Vue, { PropType } from 'vue'
 import store from '@/store'
 import { Polygon, CircleMarker, Control, DrawMap, DrawEvents } from 'leaflet'
 
-import { IBoundaryText } from 'types'
+import { IBoundaryText, IInfoTypes, IInfoType } from 'types'
 
 type LayerName = 'territory' | 'map' | 'info'
 
@@ -74,10 +73,18 @@ export default Vue.extend({
     return {
       loading: true,
       layers,
+      dialogOpen: false,
       activeDrawing: null as CircleMarker | null,
-      activeInfoText: 'Click marker to edit text',
+      activeInfoText: '',
+      activeInfoType: 'House' as IInfoType,
       deleteMode: false,
       showLabels: false
+    }
+  },
+
+  computed: {
+    infoTypes (): IInfoTypes {
+      return ['Houses', 'Flats', 'Comment', 'Todo']
     }
   },
 
@@ -213,11 +220,21 @@ export default Vue.extend({
     },
     addBoundaryText (e: IBoundaryText): CircleMarker {
       // @ts-ignore
-      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id })
+      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id, customType: e.type || 'Houses' })
       layer.bindTooltip(e.content, { permanent: false, interactive: false, direction: 'top' })
       if (this.showLabels) layer.toggleTooltip()
+      if (this.editLayer === 'info') layer.on({ click: this.onDrawingClick })
+      layer.setStyle({ color: this.getInfoColor(layer.options.customType) })
       this.layers.info.addLayer(layer)
       return layer
+    },
+    getInfoColor (type: IInfoType): string {
+      switch (type) {
+        case 'Flats': return 'purple'
+        case 'Comment': return 'grey'
+        case 'Todo': return 'red'
+        default: return 'blue'
+      }
     },
     onDeleteStart (): void {
       this.deleteMode = true
@@ -245,9 +262,10 @@ export default Vue.extend({
         this.$notification({ type: 'success', text: 'Number of houses: ' + count })
       } else if (layer instanceof CircleMarker) {
         const { lat, lng } = layer.getLatLng()
-        const newInfo: IBoundaryText = { content: '0', lat, lng }
+        const newInfo: IBoundaryText = { content: '0', lat, lng, type: 'Houses' }
         const res: IBoundaryText = await store.dispatch('territory/addInfo', newInfo)
         const newLayer = this.addBoundaryText(res)
+        newLayer.setStyle({ color: this.getInfoColor(newInfo.type) })
         this.selectDrawing(newLayer)
       } else {
         console.log(layer)
@@ -262,9 +280,15 @@ export default Vue.extend({
             const { lat, lng } = layer.getLatLng()
             const tooltip = layer.getTooltip()
             const content = tooltip ? String(tooltip.getContent()) : '0'
-            const updatedInfo: IBoundaryText = { content, lat, lng }
-            // @ts-ignore
-            updatedInfo._id = layer.options.customId
+            const updatedInfo: IBoundaryText = {
+              // @ts-ignore
+              _id: layer.options.customId,
+              content,
+              lat,
+              lng,
+              // @ts-ignore
+              type: layer.options.customType || 'Houses'
+            }
             await store.dispatch('territory/updateInfo', updatedInfo)
             this.$notification({ type: 'success', text: 'Edited information marker' })
           } catch {
@@ -301,12 +325,21 @@ export default Vue.extend({
       try {
         const { lat, lng } = this.activeDrawing.getLatLng()
         const content = this.activeInfoText.trim() || '0'
-        const updatedInfo: IBoundaryText = { content, lat, lng }
-        // @ts-ignore
-        updatedInfo._id = this.activeDrawing.options.customId
+        const updatedInfo: IBoundaryText = {
+          // @ts-ignore
+          _id: this.activeDrawing.options.customId,
+          content,
+          lat,
+          lng,
+          // @ts-ignore
+          type: this.activeInfoType || 'Houses'
+        }
         await store.dispatch('territory/updateInfo', updatedInfo)
         const tooltip = this.activeDrawing.getTooltip()
         if (tooltip) tooltip.setContent(content)
+        // @ts-ignore
+        this.activeDrawing.options.customType = updatedInfo.type
+        this.activeDrawing.setStyle({ color: this.getInfoColor(updatedInfo.type) })
         this.deselectDrawing()
         this.$notification({ type: 'success', text: 'Updated information marker text' })
       } catch {
@@ -326,23 +359,24 @@ export default Vue.extend({
       return inside
     },
     deselectDrawing (): void {
-      if (this.activeDrawing) {
-        this.activeDrawing.setStyle({ color: 'blue' })
-      }
       this.activeDrawing = null
-      this.activeInfoText = 'Click marker to edit text'
+      this.dialogOpen = false
+      this.activeInfoText = ''
+      this.activeInfoType = 'Houses'
     },
     selectDrawing (layer: CircleMarker): void {
       this.deselectDrawing()
       this.activeDrawing = layer
       const tooltip = layer.getTooltip()
       this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
-      layer.setStyle({ color: 'green' })
+      // @ts-ignore
+      this.activeInfoType = layer.options.customType
     },
     onDrawingClick (e: L.LeafletMouseEvent): void {
       if (this.deleteMode) return
       this.$leaflet.DomEvent.stopPropagation(e)
       this.selectDrawing(e.target)
+      this.dialogOpen = true
     }
   }
 })
@@ -359,7 +393,7 @@ export default Vue.extend({
   left: 5px
   z-index: 1
 #map
-  height: calc(100% - 72px)
+  height: 100%
   width: 100%
   z-index: 0
 </style>
