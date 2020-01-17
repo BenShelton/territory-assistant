@@ -30,6 +30,14 @@
         </template>
       </v-col>
     </v-row>
+    <v-btn
+      v-if="editLayer === 'info'"
+      color="primary"
+      class="info-toggle-btn"
+      @click="toggleLabels"
+    >
+      Toggle Labels
+    </v-btn>
     <div id="map" />
   </v-card>
 </template>
@@ -68,7 +76,8 @@ export default Vue.extend({
       layers,
       activeDrawing: null as CircleMarker | null,
       activeInfoText: 'Click marker to edit text',
-      deleteMode: false
+      deleteMode: false,
+      showLabels: false
     }
   },
 
@@ -158,6 +167,13 @@ export default Vue.extend({
       map.on(this.$leaflet.Draw.Event.DELETED, this.removeDrawings)
       this.addLayer(this.editLayer, map)
     },
+    toggleLabels (): void {
+      this.showLabels = !this.showLabels
+      this.layers.info.eachLayer(l => {
+        if (this.showLabels) l.openTooltip()
+        else l.closeTooltip()
+      })
+    },
     updateToolTexts (toolbarItem: 'circlemarker', drawingName: string): void {
       this.$leaflet.drawLocal.draw.toolbar.buttons[toolbarItem] = `Add ${drawingName}`
       this.$leaflet.drawLocal.draw.handlers[toolbarItem].tooltip.start = `Click map to add a new ${drawingName}.`
@@ -198,8 +214,8 @@ export default Vue.extend({
     addBoundaryText (e: IBoundaryText): CircleMarker {
       // @ts-ignore
       const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id })
-      layer.bindTooltip(e.content, { permanent: true, interactive: true, direction: 'top' })
-      layer.on({ click: this.onDrawingClick })
+      layer.bindTooltip(e.content, { permanent: false, interactive: false, direction: 'top' })
+      if (this.showLabels) layer.toggleTooltip()
       this.layers.info.addLayer(layer)
       return layer
     },
@@ -337,8 +353,13 @@ export default Vue.extend({
   position: relative
   height: 100%
   width: 100%
+.info-toggle-btn
+  position: absolute
+  bottom: 5px
+  left: 5px
+  z-index: 1
 #map
-  height: 100%
+  height: calc(100% - 72px)
   width: 100%
   z-index: 0
 </style>
