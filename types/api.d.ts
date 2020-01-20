@@ -1,4 +1,4 @@
-import { IBoundaryText } from './territory'
+import { IInfoText, IPoint } from './territory'
 import { ISettings, ILoginRequest, ILoginResponse } from 'types'
 import { UpdatedSettings } from './settings'
 
@@ -15,6 +15,26 @@ export namespace API {
     }
   }
 
+  export namespace Info {
+    export namespace List {
+      export type Response = IInfoText[]
+    }
+    export namespace Add {
+      export type Request = IInfoText
+      export type Response = IInfoText
+    }
+
+    export namespace Update {
+      export type Request = IInfoText
+      export type Response = IInfoText
+    }
+
+    export namespace Delete {
+      export type Request = string
+      export type Response = true
+    }
+  }
+
   export namespace Settings {
     export namespace Load {
       export type Request = void
@@ -27,22 +47,14 @@ export namespace API {
   }
 
   export namespace Territory {
-    export namespace GetInfo {
-      export type Response = IBoundaryText[]
-    }
-    export namespace AddInfo {
-      export type Request = IBoundaryText
-      export type Response = IBoundaryText
+    export namespace Load {
+      export type Request = void
+      export type Response = IPoint[]
     }
 
-    export namespace UpdateInfo {
-      export type Request = IBoundaryText
-      export type Response = IBoundaryText
-    }
-
-    export namespace DeleteInfo {
-      export type Request = string
-      export type Response = true
+    export namespace Update {
+      export type Request = IPoint[]
+      export type Response = IPoint[]
     }
   }
 }

@@ -1,18 +1,20 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
 import { validateToken } from './db/auth'
-import { getInfo, addInfo, updateInfo, deleteInfo } from './db/info'
+import { getTerritory, updateTerritory } from './db/territory'
 import { success, badRequest, notFound, RouteMatcher, unauthorized } from './helpers'
 
-import { IBoundaryText, API } from 'types'
+import { API, IPoint } from 'types'
 
-function isBoundaryText (obj: unknown): obj is IBoundaryText {
-  if (typeof obj !== 'object' || !obj) return false
-  const baseBoundaryText: IBoundaryText = { lat: 0, lng: 0, content: '', type: 'Houses' }
-  return Object.entries(baseBoundaryText)
+function isPointList (obj: unknown): obj is IPoint[] {
+  if (!Array.isArray(obj)) return false
+  const basePoint: IPoint = { lat: 0, lng: 0 }
+  return Object.entries(basePoint)
     .every(([k, v]) => {
-      const val = (obj as Record<string, unknown>)[k]
-      return typeof val === typeof v
+      return obj.every(p => {
+        const val = (p as Record<string, unknown>)[k]
+        return typeof val === typeof v
+      })
     })
 }
 
@@ -25,35 +27,18 @@ const handler: Handler = async (event: APIGatewayEvent) => {
 
   const matcher = new RouteMatcher(event)
 
-  // GET /info
-  if (matcher.testRoute('GET', '/info')) {
-    const list = await getInfo()
-    return success<API.Territory.GetInfo.Response>(list)
+  // GET /territory
+  if (matcher.testRoute('GET', '/territory')) {
+    const territory = await getTerritory()
+    return success<API.Territory.Load.Response>(territory)
 
-  // POST /info
-  } else if (matcher.testRoute('POST', '/info')) {
+  // POST /territory
+  } else if (matcher.testRoute('POST', '/territory')) {
     if (!event.body) return badRequest('No data sent')
     const data: unknown = JSON.parse(event.body)
-    if (!isBoundaryText(data)) return badRequest('Invalid data sent')
-    const res = await addInfo(data)
-    return success<API.Territory.AddInfo.Response>(res)
-
-  // PUT /info/:id
-  } else if (matcher.testRoute('PUT', '/info/:id')) {
-    const { id } = matcher.pathParams
-    if (!id) return badRequest('Invalid ID')
-    if (!event.body) return badRequest('No data sent')
-    const data: unknown = JSON.parse(event.body)
-    if (!isBoundaryText(data)) return badRequest('Invalid data sent')
-    const res = await updateInfo(id, data)
-    return success<API.Territory.UpdateInfo.Response>(res)
-
-  // DELETE /info/:id
-  } else if (matcher.testRoute('DELETE', '/info/:id')) {
-    const { id } = matcher.pathParams
-    if (!id) return badRequest('Invalid ID')
-    await deleteInfo(id)
-    return success<API.Territory.DeleteInfo.Response>(true)
+    if (!isPointList(data)) return badRequest('Invalid points sent')
+    const territory = await updateTerritory(data)
+    return success<API.Territory.Update.Response>(territory)
   }
 
   // 404

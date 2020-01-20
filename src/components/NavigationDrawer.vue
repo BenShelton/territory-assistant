@@ -45,10 +45,17 @@ export default Vue.extend({
     navItems (): { to: string, icon: string, title: string }[] {
       return [
         { to: '/', icon: 'mdi-home', title: 'Home' },
+        { to: '/territory', icon: 'mdi-map', title: 'Territory' },
         { to: '/maps', icon: 'mdi-map-search', title: 'Maps' },
         { to: '/info', icon: 'mdi-map-marker', title: 'Info' },
         { to: '/settings', icon: 'mdi-settings', title: 'Settings' }
       ]
+    }
+  },
+
+  watch: {
+    '$route.name' () {
+      store.commit('drawer/setDrawer', false)
     }
   },
 

@@ -1,10 +1,10 @@
 import { Collection, Db, ObjectID, UpdateQuery } from 'mongodb'
 import setup from './setup'
 
-import { IBoundaryText, API } from 'types'
+import { IInfoText, API } from 'types'
 import { MongoInterface } from 'types/mongo'
 
-type CollInfo = MongoInterface<IBoundaryText>
+type CollInfo = MongoInterface<IInfoText>
 
 const getCollection: Promise<Collection<CollInfo>> = new Promise(resolve => {
   setup
@@ -12,13 +12,13 @@ const getCollection: Promise<Collection<CollInfo>> = new Promise(resolve => {
     .then(resolve)
 })
 
-export async function getInfo (): Promise<IBoundaryText[]> {
+export async function getInfo (): Promise<IInfoText[]> {
   const coll = await getCollection
   const info = await coll.find().toArray()
-  return info as IBoundaryText[]
+  return info as IInfoText[]
 }
 
-export async function addInfo (info: API.Territory.AddInfo.Request): Promise<CollInfo> {
+export async function addInfo (info: API.Info.Add.Request): Promise<CollInfo> {
   const coll = await getCollection
   const newInfoResult = await coll.insertOne(info)
   const newInfo: CollInfo | null = newInfoResult && newInfoResult.ops && newInfoResult.ops[0]
@@ -26,7 +26,7 @@ export async function addInfo (info: API.Territory.AddInfo.Request): Promise<Col
   return newInfo
 }
 
-export async function updateInfo (id: string, info: API.Territory.UpdateInfo.Request): Promise<CollInfo> {
+export async function updateInfo (id: string, info: API.Info.Update.Request): Promise<CollInfo> {
   const coll = await getCollection
   const query = { _id: new ObjectID(id) }
   const updateInfo = { ...info }
@@ -37,7 +37,7 @@ export async function updateInfo (id: string, info: API.Territory.UpdateInfo.Req
   return value
 }
 
-export async function deleteInfo (id: API.Territory.DeleteInfo.Request): Promise<void> {
+export async function deleteInfo (id: API.Info.Delete.Request): Promise<void> {
   const coll = await getCollection
   const { deletedCount } = await coll.deleteOne({ _id: new ObjectID(id) })
   if (deletedCount !== 1) throw new Error('Could not find Info to delete')

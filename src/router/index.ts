@@ -4,6 +4,7 @@ import VueRouter, { RouteConfig } from 'vue-router'
 import store from '@/store'
 import Login from '@/views/Login.vue'
 import Home from '@/views/Home.vue'
+import Territory from '@/views/Territory.vue'
 import Maps from '@/views/Maps.vue'
 import Info from '@/views/Info.vue'
 import Settings from '@/views/Settings.vue'
@@ -20,6 +21,11 @@ const routes: RouteConfig[] = [
     path: '/',
     name: 'home',
     component: Home
+  },
+  {
+    path: '/territory',
+    name: 'territory',
+    component: Territory
   },
   {
     path: '/maps',
