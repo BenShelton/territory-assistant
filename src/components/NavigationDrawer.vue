@@ -52,6 +52,12 @@ export default Vue.extend({
     }
   },
 
+  watch: {
+    '$route.name' () {
+      store.commit('drawer/setDrawer', false)
+    }
+  },
+
   methods: {
     closeDrawer (): void {
       this.drawer = false
