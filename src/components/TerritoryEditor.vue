@@ -30,7 +30,7 @@
       </v-card>
     </v-dialog>
     <v-btn
-      v-if="editLayer === 'info'"
+      v-if="showInfoToggle"
       color="primary"
       class="info-toggle-btn"
       @click="toggleLabels"
@@ -85,6 +85,9 @@ export default Vue.extend({
   computed: {
     infoTypes (): IInfoTypes {
       return ['Houses', 'Flats', 'Comment', 'Todo']
+    },
+    showInfoToggle (): boolean {
+      return this.editLayer === 'info' || this.toggleLayers.includes('info')
     }
   },
 
@@ -204,6 +207,7 @@ export default Vue.extend({
       try {
         switch (layer) {
           case this.layers.info:
+            this.showLabels = false
             await this.loadInfoTexts()
         }
       } finally {
