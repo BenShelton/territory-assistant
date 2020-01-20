@@ -13,7 +13,8 @@
     "test": "npm run lint -- --no-fix && npm run test:unit -- --bail",
     "test:unit": "vue-cli-service test:unit",
     "test:unit:watch": "npm run test:unit -- --watch",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "backup": "babel-node-ts scripts/backup.ts"
   },
   "dependencies": {
     "@mdi/font": "^4.5.95",
@@ -31,6 +32,7 @@
     "vuex-persistedstate": "^2.7.0"
   },
   "devDependencies": {
+    "@babel/node": "^7.8.3",
     "@babel/preset-typescript": "^7.6.0",
     "@types/aws-lambda": "^8.10.34",
     "@types/jest": "^24.0.11",
@@ -49,6 +51,7 @@
     "@vue/eslint-config-standard": "^4.0.0",
     "@vue/eslint-config-typescript": "^4.0.0",
     "@vue/test-utils": "1.0.0-beta.29",
+    "babel-node-ts": "^1.0.3",
     "commitizen": "^4.0.3",
     "cz-conventional-changelog": "^3.0.2",
     "eslint": "^5.16.0",
