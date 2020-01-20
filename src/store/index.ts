@@ -4,10 +4,10 @@ import createPersistedState from 'vuex-persistedstate'
 
 import auth from './modules/auth'
 import drawer from './modules/drawer'
+import info from './modules/info'
 import map from './modules/map'
 import notification from './modules/notification'
 import settings from './modules/settings'
-import territory from './modules/territory'
 
 import { IRootState } from 'types/vuex'
 
@@ -17,10 +17,10 @@ export default new Vuex.Store<IRootState>({
   modules: {
     auth,
     drawer,
+    info,
     map,
     notification,
-    settings,
-    territory
+    settings
   },
   plugins: [createPersistedState({
     paths: ['auth']

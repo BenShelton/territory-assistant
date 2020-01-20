@@ -47,7 +47,7 @@ import Vue, { PropType } from 'vue'
 import store from '@/store'
 import { Polygon, CircleMarker, Control, DrawMap, DrawEvents } from 'leaflet'
 
-import { IBoundaryText, IInfoTypes, IInfoType } from 'types'
+import { IInfoText, IInfoTypes, IInfoType } from 'types'
 
 type LayerName = 'territory' | 'map' | 'info'
 
@@ -211,14 +211,14 @@ export default Vue.extend({
       }
     },
     async loadInfoTexts (): Promise<void> {
-      await store.dispatch('territory/loadInfo')
-      const texts = store.state.territory.info
+      await store.dispatch('info/load')
+      const texts = store.state.info.texts
       this.layers.info.clearLayers()
       texts.forEach((b) => {
-        this.addBoundaryText(b)
+        this.addInfoText(b)
       })
     },
-    addBoundaryText (e: IBoundaryText): CircleMarker {
+    addInfoText (e: IInfoText): CircleMarker {
       // @ts-ignore
       const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id, customType: e.type || 'Houses' })
       layer.bindTooltip(e.content, { permanent: false, interactive: false, direction: 'top' })
@@ -262,9 +262,9 @@ export default Vue.extend({
         this.$notification({ type: 'success', text: 'Number of houses: ' + count })
       } else if (layer instanceof CircleMarker) {
         const { lat, lng } = layer.getLatLng()
-        const newInfo: IBoundaryText = { content: '0', lat, lng, type: 'Houses' }
-        const res: IBoundaryText = await store.dispatch('territory/addInfo', newInfo)
-        const newLayer = this.addBoundaryText(res)
+        const newInfo: IInfoText = { content: '0', lat, lng, type: 'Houses' }
+        const res: IInfoText = await store.dispatch('info/add', newInfo)
+        const newLayer = this.addInfoText(res)
         newLayer.setStyle({ color: this.getInfoColor(newInfo.type) })
         this.selectDrawing(newLayer)
       } else {
@@ -280,7 +280,7 @@ export default Vue.extend({
             const { lat, lng } = layer.getLatLng()
             const tooltip = layer.getTooltip()
             const content = tooltip ? String(tooltip.getContent()) : '0'
-            const updatedInfo: IBoundaryText = {
+            const updatedInfo: IInfoText = {
               // @ts-ignore
               _id: layer.options.customId,
               content,
@@ -289,7 +289,7 @@ export default Vue.extend({
               // @ts-ignore
               type: layer.options.customType || 'Houses'
             }
-            await store.dispatch('territory/updateInfo', updatedInfo)
+            await store.dispatch('info/update', updatedInfo)
             this.$notification({ type: 'success', text: 'Edited information marker' })
           } catch {
             this.$notification({ type: 'error', text: 'Could not edit information marker' })
@@ -307,7 +307,7 @@ export default Vue.extend({
         } else if (layer instanceof CircleMarker) {
           try {
             // @ts-ignore
-            await store.dispatch('territory/deleteInfo', layer.options.customId)
+            await store.dispatch('info/delete', layer.options.customId)
             this.layers.info.removeLayer(layer)
             this.$notification({ type: 'success', text: 'Deleted information marker' })
           } catch {
@@ -325,7 +325,7 @@ export default Vue.extend({
       try {
         const { lat, lng } = this.activeDrawing.getLatLng()
         const content = this.activeInfoText.trim() || '0'
-        const updatedInfo: IBoundaryText = {
+        const updatedInfo: IInfoText = {
           // @ts-ignore
           _id: this.activeDrawing.options.customId,
           content,
@@ -334,7 +334,7 @@ export default Vue.extend({
           // @ts-ignore
           type: this.activeInfoType || 'Houses'
         }
-        await store.dispatch('territory/updateInfo', updatedInfo)
+        await store.dispatch('info/update', updatedInfo)
         const tooltip = this.activeDrawing.getTooltip()
         if (tooltip) tooltip.setContent(content)
         // @ts-ignore
