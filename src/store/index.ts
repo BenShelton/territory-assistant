@@ -8,6 +8,7 @@ import info from './modules/info'
 import map from './modules/map'
 import notification from './modules/notification'
 import settings from './modules/settings'
+import territory from './modules/territory'
 
 import { IRootState } from 'types/vuex'
 
@@ -20,7 +21,8 @@ export default new Vuex.Store<IRootState>({
     info,
     map,
     notification,
-    settings
+    settings,
+    territory
   },
   plugins: [createPersistedState({
     paths: ['auth']

@@ -8,3 +8,8 @@ export interface IInfoText {
   lng: number
   type: IInfoType
 }
+
+export interface IPoint {
+  lat: number
+  lng: number
+}

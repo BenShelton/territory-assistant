@@ -1,4 +1,4 @@
-import { IInfoText } from './territory'
+import { IInfoText, IPoint } from './territory'
 import { ISettings, ILoginRequest, ILoginResponse } from 'types'
 import { UpdatedSettings } from './settings'
 
@@ -12,17 +12,6 @@ export namespace API {
     export namespace Logout {
       export type Request = void
       export type Response = true
-    }
-  }
-
-  export namespace Settings {
-    export namespace Load {
-      export type Request = void
-      export type Response = ISettings
-    }
-    export namespace Update {
-      export type Request = UpdatedSettings
-      export type Response = ISettings
     }
   }
 
@@ -43,6 +32,29 @@ export namespace API {
     export namespace Delete {
       export type Request = string
       export type Response = true
+    }
+  }
+
+  export namespace Settings {
+    export namespace Load {
+      export type Request = void
+      export type Response = ISettings
+    }
+    export namespace Update {
+      export type Request = UpdatedSettings
+      export type Response = ISettings
+    }
+  }
+
+  export namespace Territory {
+    export namespace Load {
+      export type Request = void
+      export type Response = IPoint[]
+    }
+
+    export namespace Update {
+      export type Request = IPoint[]
+      export type Response = IPoint[]
     }
   }
 }

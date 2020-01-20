@@ -4,9 +4,9 @@ import setup from './setup'
 import { ISettingsListItem, ISettings, UpdatedSettings } from 'types'
 import { MongoInterface } from 'types/mongo'
 
-type CollInfo = MongoInterface<ISettingsListItem>
+type CollSettings = MongoInterface<ISettingsListItem>
 
-const getCollection: Promise<Collection<CollInfo>> = new Promise(resolve => {
+const getCollection: Promise<Collection<CollSettings>> = new Promise(resolve => {
   setup
     .then((db: Db) => db.collection('settings'))
     .then(resolve)

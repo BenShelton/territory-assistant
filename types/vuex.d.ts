@@ -1,4 +1,4 @@
-import { IMap, INotification, ISettings, IInfoText } from 'types'
+import { IMap, INotification, ISettings, IInfoText, IPoint } from 'types'
 
 export interface IAuthState {
   token: string
@@ -6,6 +6,11 @@ export interface IAuthState {
 
 export interface IDrawerState {
   open: boolean
+}
+
+export interface IInfoState {
+  texts: IInfoText[]
+  loading: boolean
 }
 
 export interface IMapState {
@@ -19,9 +24,8 @@ export interface INotificationState {
 
 export type ISettingsState = ISettings
 
-export interface IInfoState {
-  texts: IInfoText[]
-  loading: boolean
+export interface ITerritoryState {
+  points: IPoint[]
 }
 
 export interface IRootState {
@@ -31,4 +35,5 @@ export interface IRootState {
   map: IMapState
   notification: INotificationState
   settings: ISettingsState
+  territory: ITerritoryState
 }
