@@ -371,12 +371,12 @@ export default Vue.extend({
       this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
       // @ts-ignore
       this.activeInfoType = layer.options.customType
+      this.dialogOpen = true
     },
     onDrawingClick (e: L.LeafletMouseEvent): void {
       if (this.deleteMode) return
       this.$leaflet.DomEvent.stopPropagation(e)
       this.selectDrawing(e.target)
-      this.dialogOpen = true
     }
   }
 })
