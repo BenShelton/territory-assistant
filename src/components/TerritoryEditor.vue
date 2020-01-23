@@ -202,13 +202,16 @@ export default Vue.extend({
       this.$leaflet.drawLocal.edit.handlers.edit.tooltip.text = `Drag handles or markers to edit ${drawingName}s.`
       this.$leaflet.drawLocal.edit.handlers.remove.tooltip.text = `Click to remove ${drawingName}s.`
     },
-    addLayer (name: LayerName, map: DrawMap) {
+    async addLayer (name: LayerName, map: DrawMap): Promise<void> {
       const layer = this.layers[name]
       map.addLayer(layer)
-      this.loadLayer(layer)
+      await this.loadLayer(layer)
     },
-    onOverlayAdd (e: L.LeafletEvent): void {
-      this.loadLayer(e.layer)
+    async onOverlayAdd (e: L.LeafletEvent): Promise<void> {
+      await this.loadLayer(e.layer)
+      if (this.editLayer) {
+        this.layers[this.editLayer].bringToFront()
+      }
     },
     async loadLayer (layer: L.FeatureGroup): Promise<void> {
       this.loading = true
