@@ -14,7 +14,7 @@ interface IMountOptions {
   localVue: ReturnType<typeof createLocalVue>
   router: VueRouter
   vuetify: typeof Vuetify
-  store?: typeof store
+  store?: typeof store.original
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,7 +30,7 @@ export function createWrapper (component: any, options?: IWrapperOptions): Wrapp
   }
   if (includeStore) {
     mountOptions.localVue.use(Vuex)
-    mountOptions.store = store
+    mountOptions.store = store.original
   }
   return mount(component, mountOptions)
 }

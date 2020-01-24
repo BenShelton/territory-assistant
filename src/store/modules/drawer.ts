@@ -1,7 +1,6 @@
-import { Module } from 'vuex'
-import { IDrawerState, IRootState } from 'types/vuex'
+import { createModule } from 'direct-vuex'
 
-const storeModule: Module<IDrawerState, IRootState> = {
+const storeModule = createModule({
   namespaced: true,
   state: {
     open: false
@@ -14,6 +13,6 @@ const storeModule: Module<IDrawerState, IRootState> = {
       state.open = !state.open
     }
   }
-}
+})
 
 export default storeModule

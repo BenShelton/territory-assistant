@@ -11,7 +11,7 @@ async function request<T> (path: string, init: RequestInit): Promise<T> {
   const res = await fetch(resource, init)
   if (res.ok) return res.json() as Promise<T>
   if (res.status === 401) {
-    store.commit('auth/clearToken')
+    store.commit.auth.clearToken()
     router.push('/login')
     throw new Error('Unauthorized, please log in')
   }

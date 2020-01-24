@@ -1,11 +1,11 @@
-import { Module } from 'vuex'
-import { INotification } from 'types'
-import { INotificationState, IRootState } from 'types/vuex'
+import { createModule } from 'direct-vuex'
 
-const storeModule: Module<INotificationState, IRootState> = {
+import { INotification } from 'types'
+
+const storeModule = createModule({
   namespaced: true,
   state: {
-    list: []
+    list: [] as INotification[]
   },
   mutations: {
     add (state, payload: INotification) {
@@ -16,6 +16,6 @@ const storeModule: Module<INotificationState, IRootState> = {
       if (index > -1) state.list.splice(index, 1)
     }
   }
-}
+})
 
 export default storeModule

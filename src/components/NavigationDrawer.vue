@@ -39,7 +39,7 @@ export default Vue.extend({
         return store.state.drawer.open
       },
       set (val: boolean): void {
-        store.commit('drawer/setDrawer', val)
+        store.commit.drawer.setDrawer(val)
       }
     },
     navItems (): { to: string, icon: string, title: string }[] {
@@ -55,7 +55,7 @@ export default Vue.extend({
 
   watch: {
     '$route.name' () {
-      store.commit('drawer/setDrawer', false)
+      store.commit.drawer.setDrawer(false)
     }
   },
 
@@ -64,7 +64,7 @@ export default Vue.extend({
       this.drawer = false
     },
     async logout (): Promise<void> {
-      await store.dispatch('auth/logout')
+      await store.dispatch.auth.logout()
       this.$router.push('/login')
     }
   }

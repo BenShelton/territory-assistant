@@ -16,12 +16,12 @@ export default Vue.extend({
   name: 'AppBar',
 
   computed: {
-    loggedIn (): boolean { return store.getters['auth/loggedIn'] }
+    loggedIn (): boolean { return store.getters.auth.loggedIn }
   },
 
   methods: {
     toggleDrawer (): void {
-      store.commit('drawer/toggleDrawer')
+      store.commit.drawer.toggleDrawer()
     }
   }
 })

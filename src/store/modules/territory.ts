@@ -1,23 +1,25 @@
-import { Module } from 'vuex'
+import { createModule } from 'direct-vuex'
 
+import { moduleActionContext } from '@/store'
 import api from '@/api'
 
 import { IPoint } from 'types'
-import { ITerritoryState, IRootState } from 'types/vuex'
 
-const storeModule: Module<ITerritoryState, IRootState> = {
+const storeModule = createModule({
   namespaced: true,
   state: {
-    points: []
+    points: [] as IPoint[]
   },
   actions: {
-    async load ({ commit }) {
+    async load (context) {
+      const { commit } = storeModuleActionContext(context)
       const res = await api.territory.load()
-      commit('loadPoints', res)
+      commit.loadPoints(res)
     },
-    async update ({ commit }, payload: IPoint[]) {
+    async update (context, payload: IPoint[]) {
+      const { commit } = storeModuleActionContext(context)
       const res = await api.territory.update(payload)
-      commit('loadPoints', res)
+      commit.loadPoints(res)
     }
   },
   mutations: {
@@ -25,6 +27,7 @@ const storeModule: Module<ITerritoryState, IRootState> = {
       state.points = payload
     }
   }
-}
+})
 
 export default storeModule
+const storeModuleActionContext = (context: any) => moduleActionContext(context, storeModule)

@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import createPersistedState from 'vuex-persistedstate'
+import { createDirectStore } from 'direct-vuex'
 
 import auth from './modules/auth'
 import drawer from './modules/drawer'
@@ -10,11 +11,9 @@ import notification from './modules/notification'
 import settings from './modules/settings'
 import territory from './modules/territory'
 
-import { IRootState } from 'types/vuex'
-
 Vue.use(Vuex)
 
-export default new Vuex.Store<IRootState>({
+const { store, rootActionContext, moduleActionContext } = createDirectStore({
   modules: {
     auth,
     drawer,
@@ -28,3 +27,7 @@ export default new Vuex.Store<IRootState>({
     paths: ['auth']
   })]
 })
+
+export default store
+
+export { rootActionContext, moduleActionContext }

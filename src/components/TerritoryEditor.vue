@@ -219,7 +219,7 @@ export default Vue.extend({
         switch (layer) {
           case this.layers.info:
             this.showLabels = false
-            await store.dispatch('info/load')
+            await store.dispatch.info.load()
             const texts = store.state.info.texts
             this.layers.info.clearLayers()
             texts.forEach((b) => {
@@ -227,7 +227,7 @@ export default Vue.extend({
             })
             break
           case this.layers.territory:
-            await store.dispatch('territory/load')
+            await store.dispatch.territory.load()
             const points = store.state.territory.points
             if (points.length) {
               this.addTerritory(points)
@@ -278,7 +278,7 @@ export default Vue.extend({
         switch (this.editLayer) {
           case 'territory':
             const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
-            await store.dispatch('territory/update', points)
+            await store.dispatch.territory.update(points)
             this.addTerritory(points)
             this.$notification({ type: 'success', text: 'Added territory boundary' })
             break
@@ -299,7 +299,7 @@ export default Vue.extend({
       } else if (layer instanceof CircleMarker) {
         const { lat, lng } = layer.getLatLng()
         const newInfo: IInfoText = { content: '0', lat, lng, type: 'Houses' }
-        const res: IInfoText = await store.dispatch('info/add', newInfo)
+        const res: IInfoText = await store.dispatch.info.add(newInfo)
         const newLayer = this.addInfoText(res)
         newLayer.setStyle({ color: this.getInfoColor(newInfo.type) })
         this.selectDrawing(newLayer)
@@ -313,7 +313,7 @@ export default Vue.extend({
           switch (this.editLayer) {
             case 'territory':
               const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
-              await store.dispatch('territory/update', points)
+              await store.dispatch.territory.update(points)
               this.addTerritory(points)
               this.$notification({ type: 'success', text: 'Updated territory boundary' })
           }
@@ -331,7 +331,7 @@ export default Vue.extend({
               // @ts-ignore
               type: layer.options.customType || 'Houses'
             }
-            await store.dispatch('info/update', updatedInfo)
+            await store.dispatch.info.update(updatedInfo)
             this.$notification({ type: 'success', text: 'Edited information marker' })
           } catch {
             this.$notification({ type: 'error', text: 'Could not edit information marker' })
@@ -347,7 +347,7 @@ export default Vue.extend({
         if (layer instanceof Polygon) {
           switch (this.editLayer) {
             case 'territory':
-              await store.dispatch('territory/update', [])
+              await store.dispatch.territory.update([])
               this.layers.territory.clearLayers()
               const map = this.map as DrawMap
               map.removeControl(this.editDrawControl)
@@ -384,7 +384,7 @@ export default Vue.extend({
           // @ts-ignore
           type: this.activeInfoType || 'Houses'
         }
-        await store.dispatch('info/update', updatedInfo)
+        await store.dispatch.info.update(updatedInfo)
         const tooltip = this.activeDrawing.getTooltip()
         if (tooltip) tooltip.setContent(content)
         // @ts-ignore

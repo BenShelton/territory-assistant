@@ -52,7 +52,7 @@ export default Vue.extend({
       if (!this.password) return
       this.loading = true
       try {
-        await store.dispatch('auth/login', this.password)
+        await store.dispatch.auth.login(this.password)
         this.$notification({ type: 'success', text: 'Logged in' })
         this.$router.push('/')
       } catch {

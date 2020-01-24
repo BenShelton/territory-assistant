@@ -1,34 +1,38 @@
-import { Module } from 'vuex'
+import { createModule } from 'direct-vuex'
 
+import { moduleActionContext } from '@/store'
 import api from '@/api'
 import { IInfoText } from 'types'
-import { IInfoState, IRootState } from 'types/vuex'
 
-const storeModule: Module<IInfoState, IRootState> = {
+const storeModule = createModule({
   namespaced: true,
   state: {
-    texts: [],
+    texts: [] as IInfoText[],
     loading: false
   },
   actions: {
-    async load ({ commit }): Promise<void> {
-      commit('setLoading', true)
+    async load (context): Promise<void> {
+      const { commit } = storeModuleActionContext(context)
+      commit.setLoading(true)
       const res = await api.info.list()
-      commit('setInfo', res)
+      commit.setInfo(res)
     },
-    async add ({ commit }, payload: IInfoText): Promise<IInfoText> {
+    async add (context, payload: IInfoText): Promise<IInfoText> {
+      const { commit } = storeModuleActionContext(context)
       const res = await api.info.add(payload)
-      commit('addInfo', res)
+      commit.addInfo(res)
       return res
     },
-    async update ({ commit }, payload: IInfoText): Promise<IInfoText> {
+    async update (context, payload: IInfoText): Promise<IInfoText> {
+      const { commit } = storeModuleActionContext(context)
       const res = await api.info.update(payload)
-      commit('updateInfo', res)
+      commit.updateInfo(res)
       return res
     },
-    async delete ({ commit }, payload: string): Promise<void> {
-      const res = await api.info.delete(payload)
-      commit('removeInfo', res)
+    async delete (context, payload: string): Promise<void> {
+      const { commit } = storeModuleActionContext(context)
+      await api.info.delete(payload)
+      commit.removeInfo(payload)
     }
   },
   mutations: {
@@ -52,6 +56,7 @@ const storeModule: Module<IInfoState, IRootState> = {
       if (index !== -1) state.texts.splice(index, 1)
     }
   }
-}
+})
 
 export default storeModule
+const storeModuleActionContext = (context: any) => moduleActionContext(context, storeModule)

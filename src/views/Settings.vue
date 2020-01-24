@@ -85,7 +85,7 @@ export default Vue.extend({
       if (!this.updatedSettings.length || this.saving) return
       this.saving = true
       try {
-        await store.dispatch('settings/update', this.updatedSettings)
+        await store.dispatch.settings.update(this.updatedSettings)
         this.refreshSettings()
         this.$notification({ text: 'Settings have been saved', type: 'success' })
       } catch (err) {

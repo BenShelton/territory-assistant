@@ -53,7 +53,7 @@ const router = new VueRouter({
 router.beforeEach(async (to, from, next) => {
   if (to.name !== 'login' && !store.state.settings.src) {
     try {
-      await store.dispatch('settings/load')
+      await store.dispatch.settings.load()
     } catch (err) {
       console.error(err)
       next('/login')

@@ -14,9 +14,9 @@ Vue.use({
         text: options.text,
         type: options.type
       }
-      store.commit('notification/add', notification)
+      store.commit.notification.add(notification)
       setTimeout(() => {
-        store.commit('notification/remove', notificationId)
+        store.commit.notification.remove(notificationId)
       }, options.timeout || 3000)
     }
   }
