@@ -51,9 +51,9 @@ const router = new VueRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
-  if (to.name !== 'login' && !store.state.settings.src) {
+  if (to.name !== 'login' && !store.state.territory.overlay.src) {
     try {
-      await store.dispatch.settings.load()
+      await store.dispatch.territory.load()
     } catch (err) {
       console.error(err)
       next('/login')

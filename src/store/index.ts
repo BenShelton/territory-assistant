@@ -8,7 +8,6 @@ import drawer from './modules/drawer'
 import info from './modules/info'
 import map from './modules/map'
 import notification from './modules/notification'
-import settings from './modules/settings'
 import territory from './modules/territory'
 
 Vue.use(Vuex)
@@ -20,7 +19,6 @@ const { store, rootActionContext, moduleActionContext } = createDirectStore({
     info,
     map,
     notification,
-    settings,
     territory
   },
   plugins: [createPersistedState({

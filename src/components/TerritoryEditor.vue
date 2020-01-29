@@ -97,15 +97,14 @@ export default Vue.extend({
   methods: {
     initMap (): void {
       // Create the map & add the tile layer
-      const { centerLat, centerLng, defaultZoom } = store.state.settings
       const tileLayer = this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       })
       const map = this.map = this.$leaflet.map('map', {
-        center: { lat: +centerLat, lng: +centerLng },
-        zoom: +defaultZoom,
         layers: [tileLayer]
       })
+
+      map.fitBounds(new this.$leaflet.Polygon([store.state.territory.points]).getBounds())
 
       for (const l of this.activeLayers) {
         this.addLayer(l, map)
@@ -227,7 +226,6 @@ export default Vue.extend({
             })
             break
           case this.layers.territory:
-            await store.dispatch.territory.load()
             const points = store.state.territory.points
             if (points.length) {
               this.addTerritory(points)
@@ -278,7 +276,7 @@ export default Vue.extend({
         switch (this.editLayer) {
           case 'territory':
             const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
-            await store.dispatch.territory.update(points)
+            await store.dispatch.territory.updatePoints(points)
             this.addTerritory(points)
             this.$notification({ type: 'success', text: 'Added territory boundary' })
             break
@@ -313,7 +311,7 @@ export default Vue.extend({
           switch (this.editLayer) {
             case 'territory':
               const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
-              await store.dispatch.territory.update(points)
+              await store.dispatch.territory.updatePoints(points)
               this.addTerritory(points)
               this.$notification({ type: 'success', text: 'Updated territory boundary' })
           }
@@ -347,7 +345,7 @@ export default Vue.extend({
         if (layer instanceof Polygon) {
           switch (this.editLayer) {
             case 'territory':
-              await store.dispatch.territory.update([])
+              await store.dispatch.territory.updatePoints([])
               this.layers.territory.clearLayers()
               const map = this.map as DrawMap
               map.removeControl(this.editDrawControl)

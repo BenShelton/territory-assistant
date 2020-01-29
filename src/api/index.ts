@@ -29,13 +29,10 @@ const api = {
     update: (data: API.Info.Update.Request) => request<API.Info.Update.Response>('info/' + data._id, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: API.Info.Delete.Request) => request<API.Info.Delete.Response>('info/' + id, { method: 'DELETE' })
   },
-  settings: {
-    load: () => request<API.Settings.Load.Response>('settings', { method: 'GET' }),
-    update: (data: API.Settings.Update.Request) => request<API.Settings.Update.Response>('settings', { method: 'POST', body: JSON.stringify(data) })
-  },
   territory: {
     load: () => request<API.Territory.Load.Response>('territory', { method: 'GET' }),
-    update: (data: API.Territory.Update.Request) => request<API.Territory.Update.Response>('territory', { method: 'POST', body: JSON.stringify(data) })
+    updateOverlay: (data: API.Territory.UpdateOverlay.Request) => request<API.Territory.UpdateOverlay.Response>('territory/overlay', { method: 'POST', body: JSON.stringify(data) }),
+    updatePoints: (data: API.Territory.UpdatePoints.Request) => request<API.Territory.UpdatePoints.Response>('territory/points', { method: 'POST', body: JSON.stringify(data) })
   }
 }
 
