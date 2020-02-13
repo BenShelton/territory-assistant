@@ -45,11 +45,11 @@
 import Vue, { PropType } from 'vue'
 
 import store from '@/store'
-import { Polygon, CircleMarker, Control, DrawMap, DrawEvents } from 'leaflet'
+import { Polygon, CircleMarker, Control, DrawMap, DrawEvents, Rectangle } from 'leaflet'
 
 import { IInfoText, IInfoTypes, IInfoType, IPoint } from 'types'
 
-type LayerName = 'territory' | 'map' | 'info'
+type LayerName = 'image' | 'territory' | 'map' | 'info'
 
 export default Vue.extend({
   name: 'TerritoryEditor',
@@ -66,13 +66,18 @@ export default Vue.extend({
 
   data () {
     const layers: Record<LayerName, L.FeatureGroup> = {
+      image: new this.$leaflet.FeatureGroup(),
       territory: new this.$leaflet.FeatureGroup(),
       map: new this.$leaflet.FeatureGroup(),
       info: new this.$leaflet.FeatureGroup()
     }
+    const { src } = store.state.territory.overlay
+    const points = store.state.territory.overlay.bounds || store.state.territory.points
+    const bounds = new this.$leaflet.Polygon([points]).getBounds()
     return {
       loading: true,
       layers,
+      imageOverlay: new this.$leaflet.ImageOverlay(src, bounds),
       map: null as DrawMap | null,
       drawControl: new this.$leaflet.Control.Draw(),
       editDrawControl: new this.$leaflet.Control.Draw(),
@@ -97,21 +102,21 @@ export default Vue.extend({
   methods: {
     initMap (): void {
       // Create the map & add the tile layer
-      const { centerLat, centerLng, defaultZoom } = store.state.settings
       const tileLayer = this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       })
       const map = this.map = this.$leaflet.map('map', {
-        center: { lat: +centerLat, lng: +centerLng },
-        zoom: +defaultZoom,
         layers: [tileLayer]
       })
+
+      map.fitBounds(new this.$leaflet.Polygon([store.state.territory.points]).getBounds())
 
       for (const l of this.activeLayers) {
         this.addLayer(l, map)
       }
       if (this.toggleLayers.length) {
         const layerMap: Record<LayerName, string> = {
+          image: 'Image',
           territory: 'Territory',
           map: 'Map',
           info: 'Info'
@@ -127,6 +132,7 @@ export default Vue.extend({
 
       // Handle events
       map.on('overlayadd', this.onOverlayAdd)
+      map.on('overlayremove', this.onOverlayRemove)
 
       this.loading = false
     },
@@ -143,6 +149,7 @@ export default Vue.extend({
         circle: false,
         circlemarker: false
       }
+      let remove: false | null = null
       switch (this.editLayer) {
         case 'info':
           drawOptions.circlemarker = {}
@@ -160,6 +167,11 @@ export default Vue.extend({
               color: '#97009c'
             }
           }
+          this.updateToolTexts('polygon', 'Boundary')
+          break
+        case 'image':
+          remove = false
+          this.updateToolTexts('rectangle', 'Overlay Boundary')
       }
       this.drawControl = new this.$leaflet.Control.Draw({
         position: 'topright',
@@ -169,12 +181,16 @@ export default Vue.extend({
       this.editDrawControl = new this.$leaflet.Control.Draw({
         position: 'topright',
         draw: undefined,
-        edit: { featureGroup: this.layers[this.editLayer] }
+        edit: { featureGroup: this.layers[this.editLayer], remove }
       })
       map.addControl(this.drawControl)
       map.on('click', this.deselectDrawing)
       // @ts-ignore
       map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.EDITRESIZE, this.editResize)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.EDITSTOP, this.editStop)
       // @ts-ignore
       map.on(this.$leaflet.Draw.Event.EDITED, this.editDrawings)
       // @ts-ignore
@@ -192,7 +208,7 @@ export default Vue.extend({
         else l.closeTooltip()
       })
     },
-    updateToolTexts (toolbarItem: 'circlemarker', drawingName: string): void {
+    updateToolTexts (toolbarItem: 'circlemarker' | 'polygon' | 'rectangle', drawingName: string): void {
       this.$leaflet.drawLocal.draw.toolbar.buttons[toolbarItem] = `Add ${drawingName}`
       this.$leaflet.drawLocal.draw.handlers[toolbarItem].tooltip.start = `Click map to add a new ${drawingName}.`
       this.$leaflet.drawLocal.edit.toolbar.buttons.edit = `Move ${drawingName}(s)`
@@ -202,29 +218,40 @@ export default Vue.extend({
       this.$leaflet.drawLocal.edit.handlers.edit.tooltip.text = `Drag handles or markers to edit ${drawingName}s.`
       this.$leaflet.drawLocal.edit.handlers.remove.tooltip.text = `Click to remove ${drawingName}s.`
     },
-    addLayer (name: LayerName, map: DrawMap) {
+    async addLayer (name: LayerName, map: DrawMap): Promise<void> {
       const layer = this.layers[name]
       map.addLayer(layer)
-      this.loadLayer(layer)
+      await this.loadLayer(layer)
     },
-    onOverlayAdd (e: L.LeafletEvent): void {
-      this.loadLayer(e.layer)
+    async onOverlayAdd (e: L.LeafletEvent): Promise<void> {
+      await this.loadLayer(e.layer)
+      if (this.editLayer) {
+        this.layers[this.editLayer].bringToFront()
+      }
+    },
+    onOverlayRemove (e: L.LeafletEvent): void {
+      if (e.layer === this.layers.image) {
+        (this.map as DrawMap).removeLayer(this.imageOverlay)
+      }
     },
     async loadLayer (layer: L.FeatureGroup): Promise<void> {
       this.loading = true
       try {
         switch (layer) {
+          case this.layers.image:
+            layer.clearLayers()
+            this.addImage()
+            break
           case this.layers.info:
             this.showLabels = false
-            await store.dispatch('info/load')
+            await store.dispatch.info.load()
             const texts = store.state.info.texts
-            this.layers.info.clearLayers()
+            layer.clearLayers()
             texts.forEach((b) => {
               this.addInfoText(b)
             })
             break
           case this.layers.territory:
-            await store.dispatch('territory/load')
             const points = store.state.territory.points
             if (points.length) {
               this.addTerritory(points)
@@ -233,6 +260,19 @@ export default Vue.extend({
       } finally {
         this.loading = false
       }
+    },
+    addImage (): void {
+      const map = this.map as DrawMap
+      if (this.editLayer === 'image') {
+        map.removeControl(this.drawControl)
+        map.addControl(this.editDrawControl)
+        const rect = new this.$leaflet.Rectangle(this.imageOverlay.getBounds(), { fillOpacity: 0 })
+        this.layers.image.addLayer(rect)
+        this.imageOverlay.setOpacity(0.6)
+      } else {
+        this.imageOverlay.setOpacity(1)
+      }
+      this.imageOverlay.addTo(map)
     },
     addTerritory (points: IPoint[]): void {
       this.layers.territory.clearLayers()
@@ -275,7 +315,7 @@ export default Vue.extend({
         switch (this.editLayer) {
           case 'territory':
             const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
-            await store.dispatch('territory/update', points)
+            await store.dispatch.territory.updatePoints(points)
             this.addTerritory(points)
             this.$notification({ type: 'success', text: 'Added territory boundary' })
             break
@@ -296,7 +336,7 @@ export default Vue.extend({
       } else if (layer instanceof CircleMarker) {
         const { lat, lng } = layer.getLatLng()
         const newInfo: IInfoText = { content: '0', lat, lng, type: 'Houses' }
-        const res: IInfoText = await store.dispatch('info/add', newInfo)
+        const res: IInfoText = await store.dispatch.info.add(newInfo)
         const newLayer = this.addInfoText(res)
         newLayer.setStyle({ color: this.getInfoColor(newInfo.type) })
         this.selectDrawing(newLayer)
@@ -304,13 +344,33 @@ export default Vue.extend({
         console.log(layer)
       }
     },
+    editResize (e: DrawEvents.EditResize): void {
+      if (this.editLayer === 'image') {
+        const layer = e.layer as Rectangle
+        this.imageOverlay.setBounds(layer.getBounds())
+      }
+    },
+    editStop (): void {
+      if (this.editLayer === 'image') {
+        const rect = this.layers.image.getLayers()[0] as Rectangle
+        this.imageOverlay.setBounds(rect.getBounds())
+      }
+    },
+    isRectangleBounds (obj: IPoint[]): obj is [IPoint, IPoint, IPoint, IPoint] {
+      return obj.length === 4
+    },
     async editDrawings (e: DrawEvents.Edited): Promise<void> {
       e.layers.eachLayer(async layer => {
-        if (layer instanceof Polygon) {
+        if (layer instanceof Rectangle) {
+          const bounds = (layer.getLatLngs() as L.LatLng[][])[0]
+          if (!this.isRectangleBounds(bounds)) throw new Error('Rectangle is not returning rectangle bounds')
+          await store.dispatch.territory.updateOverlay({ bounds })
+          this.$notification({ type: 'success', text: 'Updated territory image' })
+        } else if (layer instanceof Polygon) {
           switch (this.editLayer) {
             case 'territory':
               const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
-              await store.dispatch('territory/update', points)
+              await store.dispatch.territory.updatePoints(points)
               this.addTerritory(points)
               this.$notification({ type: 'success', text: 'Updated territory boundary' })
           }
@@ -328,7 +388,7 @@ export default Vue.extend({
               // @ts-ignore
               type: layer.options.customType || 'Houses'
             }
-            await store.dispatch('info/update', updatedInfo)
+            await store.dispatch.info.update(updatedInfo)
             this.$notification({ type: 'success', text: 'Edited information marker' })
           } catch {
             this.$notification({ type: 'error', text: 'Could not edit information marker' })
@@ -344,7 +404,7 @@ export default Vue.extend({
         if (layer instanceof Polygon) {
           switch (this.editLayer) {
             case 'territory':
-              await store.dispatch('territory/update', [])
+              await store.dispatch.territory.updatePoints([])
               this.layers.territory.clearLayers()
               const map = this.map as DrawMap
               map.removeControl(this.editDrawControl)
@@ -381,7 +441,7 @@ export default Vue.extend({
           // @ts-ignore
           type: this.activeInfoType || 'Houses'
         }
-        await store.dispatch('info/update', updatedInfo)
+        await store.dispatch.info.update(updatedInfo)
         const tooltip = this.activeDrawing.getTooltip()
         if (tooltip) tooltip.setContent(content)
         // @ts-ignore

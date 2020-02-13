@@ -1,30 +1,50 @@
-import { Module } from 'vuex'
+import { createModule } from 'direct-vuex'
 
+import { moduleActionContext } from '@/store'
 import api from '@/api'
 
-import { IPoint } from 'types'
-import { ITerritoryState, IRootState } from 'types/vuex'
+import { ITerritory, IPoint } from 'types'
 
-const storeModule: Module<ITerritoryState, IRootState> = {
-  namespaced: true,
-  state: {
-    points: []
+const state: ITerritory = {
+  overlay: {
+    src: '',
+    bounds: null
   },
+  points: [] as IPoint[]
+}
+
+const storeModule = createModule({
+  namespaced: true,
+  state,
   actions: {
-    async load ({ commit }) {
+    async load (context) {
+      const { commit } = storeModuleActionContext(context)
       const res = await api.territory.load()
-      commit('loadPoints', res)
+      commit.loadTerritory(res)
     },
-    async update ({ commit }, payload: IPoint[]) {
-      const res = await api.territory.update(payload)
-      commit('loadPoints', res)
+    async updateOverlay (context, payload: Partial<ITerritory['overlay']>) {
+      const { commit } = storeModuleActionContext(context)
+      const res = await api.territory.updateOverlay(payload)
+      commit.loadOverlay(res)
+    },
+    async updatePoints (context, payload: IPoint[]) {
+      const { commit } = storeModuleActionContext(context)
+      const res = await api.territory.updatePoints(payload)
+      commit.loadPoints(res)
     }
   },
   mutations: {
+    loadTerritory (state, payload: ITerritory) {
+      Object.assign(state, payload)
+    },
+    loadOverlay (state, payload: ITerritory['overlay']) {
+      state.overlay = payload
+    },
     loadPoints (state, payload: IPoint[]) {
       state.points = payload
     }
   }
-}
+})
 
 export default storeModule
+const storeModuleActionContext = (context: any) => moduleActionContext(context, storeModule)

@@ -39,13 +39,14 @@ export default Vue.extend({
         return store.state.drawer.open
       },
       set (val: boolean): void {
-        store.commit('drawer/setDrawer', val)
+        store.commit.drawer.setDrawer(val)
       }
     },
     navItems (): { to: string, icon: string, title: string }[] {
       return [
         { to: '/', icon: 'mdi-home', title: 'Home' },
         { to: '/territory', icon: 'mdi-map', title: 'Territory' },
+        { to: '/image', icon: 'mdi-image', title: 'Image' },
         { to: '/maps', icon: 'mdi-map-search', title: 'Maps' },
         { to: '/info', icon: 'mdi-map-marker', title: 'Info' },
         { to: '/settings', icon: 'mdi-settings', title: 'Settings' }
@@ -55,7 +56,7 @@ export default Vue.extend({
 
   watch: {
     '$route.name' () {
-      store.commit('drawer/setDrawer', false)
+      store.commit.drawer.setDrawer(false)
     }
   },
 
@@ -64,7 +65,7 @@ export default Vue.extend({
       this.drawer = false
     },
     async logout (): Promise<void> {
-      await store.dispatch('auth/logout')
+      await store.dispatch.auth.logout()
       this.$router.push('/login')
     }
   }

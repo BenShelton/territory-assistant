@@ -14,8 +14,11 @@ interface IMountOptions {
   localVue: ReturnType<typeof createLocalVue>
   router: VueRouter
   vuetify: typeof Vuetify
-  store?: typeof store
+  store?: typeof store.original
 }
+
+// mock the initial territory load
+store.original.state.territory.points = [{ lat: 0, lng: 0 }, { lat: 0, lng: 1 }, { lat: 1, lng: 1 }, { lat: 1, lng: 0 }]
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createWrapper (component: any, options?: IWrapperOptions): Wrapper<any> {
@@ -30,7 +33,7 @@ export function createWrapper (component: any, options?: IWrapperOptions): Wrapp
   }
   if (includeStore) {
     mountOptions.localVue.use(Vuex)
-    mountOptions.store = store
+    mountOptions.store = store.original
   }
   return mount(component, mountOptions)
 }

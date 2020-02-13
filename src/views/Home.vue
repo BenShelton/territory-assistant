@@ -9,7 +9,7 @@
       Welcome to Territory Assistant
     </h1>
     <TerritoryEditor
-      :active-layers="['territory', 'map', 'info']"
+      :active-layers="['image', 'territory', 'map', 'info']"
     />
   </v-container>
 </template>

@@ -1,6 +1,4 @@
-import { IInfoText, IPoint } from './territory'
-import { ISettings, ILoginRequest, ILoginResponse } from 'types'
-import { UpdatedSettings } from './settings'
+import { ILoginRequest, ILoginResponse, ITerritory, IInfoText, IPoint } from 'types'
 
 export namespace API {
   export namespace Auth {
@@ -35,24 +33,18 @@ export namespace API {
     }
   }
 
-  export namespace Settings {
-    export namespace Load {
-      export type Request = void
-      export type Response = ISettings
-    }
-    export namespace Update {
-      export type Request = UpdatedSettings
-      export type Response = ISettings
-    }
-  }
-
   export namespace Territory {
     export namespace Load {
       export type Request = void
-      export type Response = IPoint[]
+      export type Response = ITerritory
     }
 
-    export namespace Update {
+    export namespace UpdateOverlay {
+      export type Request = Partial<ITerritory['overlay']>
+      export type Response = ITerritory['overlay']
+    }
+
+    export namespace UpdatePoints {
       export type Request = IPoint[]
       export type Response = IPoint[]
     }
