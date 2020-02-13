@@ -46,6 +46,7 @@ export default Vue.extend({
       return [
         { to: '/', icon: 'mdi-home', title: 'Home' },
         { to: '/territory', icon: 'mdi-map', title: 'Territory' },
+        { to: '/image', icon: 'mdi-image', title: 'Image' },
         { to: '/maps', icon: 'mdi-map-search', title: 'Maps' },
         { to: '/info', icon: 'mdi-map-marker', title: 'Info' },
         { to: '/settings', icon: 'mdi-settings', title: 'Settings' }

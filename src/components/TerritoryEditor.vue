@@ -49,7 +49,7 @@ import { Polygon, CircleMarker, Control, DrawMap, DrawEvents } from 'leaflet'
 
 import { IInfoText, IInfoTypes, IInfoType, IPoint } from 'types'
 
-type LayerName = 'territory' | 'map' | 'info'
+type LayerName = 'image' | 'territory' | 'map' | 'info'
 
 export default Vue.extend({
   name: 'TerritoryEditor',
@@ -66,6 +66,7 @@ export default Vue.extend({
 
   data () {
     const layers: Record<LayerName, L.FeatureGroup> = {
+      image: new this.$leaflet.FeatureGroup(),
       territory: new this.$leaflet.FeatureGroup(),
       map: new this.$leaflet.FeatureGroup(),
       info: new this.$leaflet.FeatureGroup()
@@ -73,6 +74,7 @@ export default Vue.extend({
     return {
       loading: true,
       layers,
+      imageOverlayLayer: new this.$leaflet.FeatureGroup(),
       map: null as DrawMap | null,
       drawControl: new this.$leaflet.Control.Draw(),
       editDrawControl: new this.$leaflet.Control.Draw(),
@@ -111,6 +113,7 @@ export default Vue.extend({
       }
       if (this.toggleLayers.length) {
         const layerMap: Record<LayerName, string> = {
+          image: 'Image',
           territory: 'Territory',
           map: 'Map',
           info: 'Info'
@@ -126,6 +129,7 @@ export default Vue.extend({
 
       // Handle events
       map.on('overlayadd', this.onOverlayAdd)
+      map.on('overlayremove', this.onOverlayRemove)
 
       this.loading = false
     },
@@ -159,6 +163,8 @@ export default Vue.extend({
               color: '#97009c'
             }
           }
+          this.updateToolTexts('polygon', 'Boundary')
+          break
       }
       this.drawControl = new this.$leaflet.Control.Draw({
         position: 'topright',
@@ -191,7 +197,7 @@ export default Vue.extend({
         else l.closeTooltip()
       })
     },
-    updateToolTexts (toolbarItem: 'circlemarker', drawingName: string): void {
+    updateToolTexts (toolbarItem: 'circlemarker' | 'polygon' | 'rectangle', drawingName: string): void {
       this.$leaflet.drawLocal.draw.toolbar.buttons[toolbarItem] = `Add ${drawingName}`
       this.$leaflet.drawLocal.draw.handlers[toolbarItem].tooltip.start = `Click map to add a new ${drawingName}.`
       this.$leaflet.drawLocal.edit.toolbar.buttons.edit = `Move ${drawingName}(s)`
@@ -212,15 +218,36 @@ export default Vue.extend({
         this.layers[this.editLayer].bringToFront()
       }
     },
+    onOverlayRemove (e: L.LeafletEvent): void {
+      if (e.layer === this.layers.image && this.editLayer === 'image') {
+        (this.map as DrawMap).removeLayer(this.imageOverlayLayer)
+      }
+    },
     async loadLayer (layer: L.FeatureGroup): Promise<void> {
       this.loading = true
       try {
         switch (layer) {
+          case this.layers.image:
+            layer.clearLayers()
+            const { src } = store.state.territory.overlay
+            const image = new this.$leaflet.ImageOverlay(src, [[51.456400290482875, -3.2350766658782963], [51.51316279981722, -3.1820440292358403]])
+            if (this.editLayer === 'image') {
+              const map = this.map as DrawMap
+              map.removeControl(this.drawControl)
+              map.addControl(this.editDrawControl)
+              this.imageOverlayLayer.clearLayers()
+              image.setOpacity(0.6)
+              image.addTo(this.imageOverlayLayer)
+              this.imageOverlayLayer.addTo(this.map as DrawMap)
+            } else {
+              image.addTo(layer)
+            }
+            break
           case this.layers.info:
             this.showLabels = false
             await store.dispatch.info.load()
             const texts = store.state.info.texts
-            this.layers.info.clearLayers()
+            layer.clearLayers()
             texts.forEach((b) => {
               this.addInfoText(b)
             })
