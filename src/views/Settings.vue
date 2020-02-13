@@ -5,7 +5,7 @@
     </h1>
     <v-row align="center">
       <v-col cols="3">
-        <span class="title">Territory Overlay Image</span>
+        <span class="title">Image Overlay URL</span>
       </v-col>
       <v-col cols="9">
         <v-text-field v-model="overlaySrc" />

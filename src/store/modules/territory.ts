@@ -8,8 +8,7 @@ import { ITerritory, IPoint } from 'types'
 const state: ITerritory = {
   overlay: {
     src: '',
-    center: { lat: 0, lng: 0 },
-    scale: 1
+    bounds: null
   },
   points: [] as IPoint[]
 }

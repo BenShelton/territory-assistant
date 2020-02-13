@@ -4,11 +4,7 @@ export type IInfoType = IInfoTypes[number]
 export interface ITerritory {
   overlay: {
     src: string
-    center: {
-      lat: number
-      lng: number
-    }
-    scale: number
+    bounds: [IPoint, IPoint, IPoint, IPoint] | null
   }
   points: IPoint[]
 }

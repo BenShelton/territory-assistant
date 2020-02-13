@@ -6,7 +6,7 @@
     fill-height
   >
     <h1 class="headline mb-3">
-      Edit Image
+      Edit Image Overlay
     </h1>
     <p>Note: To change the image go to settings</p>
     <TerritoryEditor
