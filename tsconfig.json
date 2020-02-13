@@ -15,7 +15,8 @@
       "jest",
       "leaflet",
       "leaflet-draw",
-      "vuetify"
+      "vuetify",
+      "jest-fetch-mock"
     ],
     "paths": {
       "@/*": [

@@ -3,6 +3,8 @@ import Vuetify from 'vuetify'
 
 import '@/plugins/leaflet'
 
+require('jest-fetch-mock').enableMocks()
+
 Vue.use(Vuetify)
 Vue.prototype.$leaflet.Map.prototype._initContainer = jest.fn(function () {
   // @ts-ignore
