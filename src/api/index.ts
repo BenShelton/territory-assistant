@@ -29,6 +29,12 @@ const api = {
     update: (data: API.Info.Update.Request) => request<API.Info.Update.Response>('info/' + data._id, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: API.Info.Delete.Request) => request<API.Info.Delete.Response>('info/' + id, { method: 'DELETE' })
   },
+  maps: {
+    list: () => request<API.Maps.List.Response>('maps', { method: 'GET' }),
+    add: (data: API.Maps.Add.Request) => request<API.Maps.Add.Response>('maps', { method: 'POST', body: JSON.stringify(data) }),
+    update: (data: API.Maps.Update.Request) => request<API.Maps.Update.Response>('maps/' + data._id, { method: 'PUT', body: JSON.stringify(data) }),
+    delete: (id: API.Maps.Delete.Request) => request<API.Maps.Delete.Response>('maps/' + id, { method: 'DELETE' })
+  },
   territory: {
     load: () => request<API.Territory.Load.Response>('territory', { method: 'GET' }),
     updateOverlay: (data: API.Territory.UpdateOverlay.Request) => request<API.Territory.UpdateOverlay.Response>('territory/overlay', { method: 'POST', body: JSON.stringify(data) }),

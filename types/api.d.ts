@@ -1,4 +1,4 @@
-import { ILoginRequest, ILoginResponse, ITerritory, IInfoText, IPoint } from 'types'
+import { ILoginRequest, ILoginResponse, ITerritory, IInfoText, IPoint, IMap } from 'types'
 
 export namespace API {
   export namespace Auth {
@@ -25,6 +25,27 @@ export namespace API {
     export namespace Update {
       export type Request = IInfoText
       export type Response = IInfoText
+    }
+
+    export namespace Delete {
+      export type Request = string
+      export type Response = true
+    }
+  }
+
+  export namespace Maps {
+    export namespace List {
+      export type Response = IMap[]
+    }
+
+    export namespace Add {
+      export type Request = IMap
+      export type Response = IMap
+    }
+
+    export namespace Update {
+      export type Request = IMap
+      export type Response = IMap
     }
 
     export namespace Delete {

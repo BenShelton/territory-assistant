@@ -1,10 +1,9 @@
-export interface IMap {
-  id: string
-  name: string
-  subTerritories: ISubMap[]
-}
+import { IPoint } from './territory'
 
-export interface ISubMap {
-  title: string
-  doNotCalls: string[]
+export interface IMap {
+  _id?: string
+  name: string
+  group: string
+  bounds: IPoint[]
+  dncs: string[]
 }
