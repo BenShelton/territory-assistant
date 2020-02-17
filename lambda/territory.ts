@@ -2,25 +2,9 @@ import { Handler, APIGatewayEvent } from 'aws-lambda'
 
 import { validateToken } from './db/auth'
 import { getTerritory, updateTerritoryOverlay, updateTerritoryPoints } from './db/territory'
-import { success, badRequest, notFound, RouteMatcher, unauthorized } from './helpers'
+import { success, badRequest, notFound, RouteMatcher, unauthorized, isObject, isPointList } from './helpers'
 
-import { API, IPoint, ITerritory } from 'types'
-
-function isObject (obj: unknown): obj is Record<string, unknown> {
-  return typeof obj === 'object' && !Array.isArray(obj) && !!obj
-}
-
-function isPointList (obj: unknown): obj is IPoint[] {
-  if (!Array.isArray(obj)) return false
-  const basePoint: IPoint = { lat: 0, lng: 0 }
-  return Object.entries(basePoint)
-    .every(([k, v]) => {
-      return obj.every(p => {
-        if (!isObject(p)) return false
-        return typeof p[k] === typeof v
-      })
-    })
-}
+import { API, ITerritory } from 'types'
 
 function isPartialOverlay (obj: unknown): obj is Partial<ITerritory['overlay']> {
   if (!isObject(obj)) return false

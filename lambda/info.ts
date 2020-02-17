@@ -2,16 +2,16 @@ import { Handler, APIGatewayEvent } from 'aws-lambda'
 
 import { validateToken } from './db/auth'
 import { getInfo, addInfo, updateInfo, deleteInfo } from './db/info'
-import { success, badRequest, notFound, RouteMatcher, unauthorized } from './helpers'
+import { success, badRequest, notFound, RouteMatcher, unauthorized, isObject } from './helpers'
 
 import { IInfoText, API } from 'types'
 
 function isInfoText (obj: unknown): obj is IInfoText {
-  if (typeof obj !== 'object' || !obj) return false
+  if (!isObject(obj)) return false
   const baseInfoText: IInfoText = { lat: 0, lng: 0, content: '', type: 'Houses' }
   return Object.entries(baseInfoText)
     .every(([k, v]) => {
-      const val = (obj as Record<string, unknown>)[k]
+      const val = obj[k]
       return typeof val === typeof v
     })
 }
