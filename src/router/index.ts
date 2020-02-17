@@ -7,6 +7,7 @@ import Home from '@/views/Home.vue'
 import Territory from '@/views/Territory.vue'
 import ImageOverlay from '@/views/ImageOverlay.vue'
 import Maps from '@/views/Maps.vue'
+import MapsAdd from '@/views/Maps/MapsAdd.vue'
 import Info from '@/views/Info.vue'
 import Settings from '@/views/Settings.vue'
 
@@ -37,6 +38,11 @@ const routes: RouteConfig[] = [
     path: '/maps',
     name: 'maps',
     component: Maps
+  },
+  {
+    path: '/maps/add',
+    name: 'mapsAdd',
+    component: MapsAdd
   },
   {
     path: '/info',
