@@ -1,46 +1,30 @@
 <template>
-  <v-container>
+  <v-container
+    flex-column
+    flex-nowrap
+    align-start
+    fill-height
+  >
     <h1 class="headline mb-3">
-      Maps
+      Edit Maps
     </h1>
-    <v-btn color="primary" @click="onAdd">
-      <v-icon left>
-        mdi-plus
-      </v-icon>
-      ADD NEW MAP
-    </v-btn>
-    <v-row wrap>
-      <v-col>
-        <MapPreview
-          v-for="map of maps"
-          :key="map._id"
-          :map="map"
-        />
-      </v-col>
-    </v-row>
+    <TerritoryEditor
+      edit-layer="maps"
+      :toggle-layers="['image', 'territory', 'info']"
+    />
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 
-import store from '@/store'
-
-import { IMap } from 'types'
+import TerritoryEditor from '@/components/TerritoryEditor.vue'
 
 export default Vue.extend({
   name: 'Maps',
 
-  computed: {
-    maps (): IMap[] {
-      return store.state.maps.list
-    }
-  },
-
-  methods: {
-    onAdd (): void {
-      this.$router.push('/maps/add')
-    }
+  components: {
+    TerritoryEditor
   }
 })
 </script>

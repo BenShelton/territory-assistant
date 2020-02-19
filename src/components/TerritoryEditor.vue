@@ -49,7 +49,7 @@ import { Polygon, CircleMarker, Control, DrawMap, DrawEvents, Rectangle } from '
 
 import { IInfoText, IInfoTypes, IInfoType, IPoint } from 'types'
 
-type LayerName = 'image' | 'territory' | 'map' | 'info'
+type LayerName = 'image' | 'territory' | 'maps' | 'info'
 
 export default Vue.extend({
   name: 'TerritoryEditor',
@@ -118,7 +118,7 @@ export default Vue.extend({
         const layerMap: Record<LayerName, string> = {
           image: 'Image',
           territory: 'Territory',
-          map: 'Map',
+          maps: 'Maps',
           info: 'Info'
         }
         const overlays = this.toggleLayers.reduce((acc: Record<typeof layerMap[LayerName], L.FeatureGroup>, l) => {
@@ -156,7 +156,7 @@ export default Vue.extend({
           this.updateToolTexts('circlemarker', 'Information Marker')
           break
         case 'territory':
-        case 'map':
+        case 'maps':
           drawOptions.polygon = {
             allowIntersection: false,
             drawError: {
@@ -167,7 +167,7 @@ export default Vue.extend({
               color: '#97009c'
             }
           }
-          this.updateToolTexts('polygon', 'Boundary')
+          this.updateToolTexts('polygon', this.editLayer === 'maps' ? 'Map' : 'Boundary')
           break
         case 'image':
           remove = false
@@ -318,8 +318,7 @@ export default Vue.extend({
             this.addTerritory(points)
             this.$notification({ type: 'success', text: 'Added territory boundary' })
             break
-          case 'map':
-            this.layers.map.addLayer(layer)
+          case 'maps':
             let count = 0
             this.layers.info.eachLayer(l => {
               if (this.markerWithinPolygon(l as CircleMarker, layer)) {
