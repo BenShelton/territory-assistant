@@ -285,12 +285,11 @@ export default Vue.extend({
       }
     },
     addInfoText (e: IInfoText): CircleMarker {
-      // @ts-ignore
-      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id, customType: e.type || 'Houses' })
+      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', prevInfoText: { ...e, type: e.type || 'Houses' } })
       layer.bindTooltip(e.content, { permanent: false, interactive: false, direction: 'top' })
       if (this.showLabels) layer.toggleTooltip()
       if (this.editLayer === 'info') layer.on({ click: this.onDrawingClick })
-      layer.setStyle({ color: this.getInfoColor(layer.options.customType) })
+      layer.setStyle({ color: this.getInfoColor(layer.options.prevInfoText.type) })
       this.layers.info.addLayer(layer)
       return layer
     },
@@ -380,13 +379,10 @@ export default Vue.extend({
             const tooltip = layer.getTooltip()
             const content = tooltip ? String(tooltip.getContent()) : '0'
             const updatedInfo: IInfoText = {
-              // @ts-ignore
-              _id: layer.options.customId,
+              ...layer.options.prevInfoText,
               content,
               lat,
-              lng,
-              // @ts-ignore
-              type: layer.options.customType || 'Houses'
+              lng
             }
             await store.dispatch.info.update(updatedInfo)
             this.$notification({ type: 'success', text: 'Edited information marker' })
@@ -413,8 +409,8 @@ export default Vue.extend({
           }
         } else if (layer instanceof CircleMarker) {
           try {
-            // @ts-ignore
-            await store.dispatch('info/delete', layer.options.customId)
+            if (!layer.options.prevInfoText._id) throw new Error('No Id saved on marker')
+            await store.dispatch.info.delete(layer.options.prevInfoText._id)
             this.layers.info.removeLayer(layer)
             this.$notification({ type: 'success', text: 'Deleted information marker' })
           } catch {
@@ -433,19 +429,16 @@ export default Vue.extend({
         const { lat, lng } = this.activeDrawing.getLatLng()
         const content = this.activeInfoText.trim() || '0'
         const updatedInfo: IInfoText = {
-          // @ts-ignore
-          _id: this.activeDrawing.options.customId,
+          ...this.activeDrawing.options.prevInfoText,
           content,
           lat,
           lng,
-          // @ts-ignore
           type: this.activeInfoType || 'Houses'
         }
         await store.dispatch.info.update(updatedInfo)
         const tooltip = this.activeDrawing.getTooltip()
         if (tooltip) tooltip.setContent(content)
-        // @ts-ignore
-        this.activeDrawing.options.customType = updatedInfo.type
+        this.activeDrawing.options.prevInfoText = updatedInfo
         this.activeDrawing.setStyle({ color: this.getInfoColor(updatedInfo.type) })
         this.deselectDrawing()
         this.$notification({ type: 'success', text: 'Updated information marker text' })
@@ -476,8 +469,7 @@ export default Vue.extend({
       this.activeDrawing = layer
       const tooltip = layer.getTooltip()
       this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
-      // @ts-ignore
-      this.activeInfoType = layer.options.customType
+      this.activeInfoType = layer.options.prevInfoText.type
       this.dialogOpen = true
     },
     onDrawingClick (e: L.LeafletMouseEvent): void {
