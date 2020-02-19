@@ -10,7 +10,7 @@ function isMap (obj: unknown): obj is IMap {
   if (!isObject(obj)) return false
   const baseMap: Omit<IMap, 'bounds' | 'dncs'> = { name: '', group: '' }
   if (!isPointList(obj.bounds)) return false
-  if (!Array.isArray(obj.dncs) || obj.dncs.every(dnc => typeof dnc === 'string')) return false
+  if (!Array.isArray(obj.dncs) || obj.dncs.some(dnc => typeof dnc !== 'string')) return false
   return Object.entries(baseMap)
     .every(([k, v]) => {
       const val = obj[k]

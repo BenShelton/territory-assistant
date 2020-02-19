@@ -47,7 +47,7 @@ import Vue, { PropType } from 'vue'
 import store from '@/store'
 import { Polygon, CircleMarker, Control, DrawMap, DrawEvents, Rectangle } from 'leaflet'
 
-import { IInfoText, IInfoTypes, IInfoType, IPoint } from 'types'
+import { IInfoText, IInfoTypes, IInfoType, IPoint, IMap } from 'types'
 
 type LayerName = 'image' | 'territory' | 'maps' | 'info'
 
@@ -68,7 +68,7 @@ export default Vue.extend({
     const layers: Record<LayerName, L.FeatureGroup> = {
       image: new this.$leaflet.FeatureGroup(),
       territory: new this.$leaflet.FeatureGroup(),
-      map: new this.$leaflet.FeatureGroup(),
+      maps: new this.$leaflet.FeatureGroup(),
       info: new this.$leaflet.FeatureGroup()
     }
     const { src } = store.state.territory.overlay
@@ -251,6 +251,14 @@ export default Vue.extend({
               this.addInfoText(b)
             })
             break
+          case this.layers.maps:
+            await store.dispatch.maps.load()
+            const maps = store.state.maps.list
+            layer.clearLayers()
+            maps.forEach((b) => {
+              this.addMap(b)
+            })
+            break
           case this.layers.territory:
             const points = store.state.territory.points
             if (points.length) {
@@ -293,6 +301,12 @@ export default Vue.extend({
       this.layers.info.addLayer(layer)
       return layer
     },
+    addMap (e: IMap): Polygon {
+      const layer = this.$leaflet.polygon([e.bounds], { prevMap: e })
+      if (this.editLayer === 'maps') layer.on({ click: this.onDrawingClick })
+      this.layers.maps.addLayer(layer)
+      return layer
+    },
     getInfoColor (type: IInfoType): string {
       switch (type) {
         case 'Flats': return 'purple'
@@ -311,25 +325,34 @@ export default Vue.extend({
     async addDrawing (e: DrawEvents.Created): Promise<void> {
       const { layer } = e
       if (layer instanceof Polygon) {
+        const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
         switch (this.editLayer) {
           case 'territory':
-            const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
             await store.dispatch.territory.updatePoints(points)
             this.addTerritory(points)
             this.$notification({ type: 'success', text: 'Added territory boundary' })
             break
-          case 'maps':
-            let count = 0
-            this.layers.info.eachLayer(l => {
-              if (this.markerWithinPolygon(l as CircleMarker, layer)) {
-                const tooltip = l.getTooltip()
-                if (tooltip) {
-                  const content = tooltip.getContent()
-                  if (typeof content === 'string' && !Number.isNaN(+content)) count += +content
-                }
-              }
+          case 'maps': {
+            const newMap = await store.dispatch.maps.add({
+              name: '',
+              group: '',
+              bounds: points,
+              dncs: []
             })
-            this.$notification({ type: 'success', text: 'Number of houses: ' + count })
+            const newLayer = this.addMap(newMap)
+            this.selectDrawing(newLayer)
+            // let count = 0
+            // this.layers.info.eachLayer(l => {
+            //   if (this.markerWithinPolygon(l as CircleMarker, layer)) {
+            //     const tooltip = l.getTooltip()
+            //     if (tooltip) {
+            //       const content = tooltip.getContent()
+            //       if (typeof content === 'string' && !Number.isNaN(+content)) count += +content
+            //     }
+            //   }
+            // })
+            // this.$notification({ type: 'success', text: 'Number of houses: ' + count })
+          }
         }
       } else if (layer instanceof CircleMarker) {
         const { lat, lng } = layer.getLatLng()
@@ -365,12 +388,19 @@ export default Vue.extend({
           await store.dispatch.territory.updateOverlay({ bounds })
           this.$notification({ type: 'success', text: 'Updated territory image' })
         } else if (layer instanceof Polygon) {
+          const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
           switch (this.editLayer) {
             case 'territory':
-              const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
               await store.dispatch.territory.updatePoints(points)
               this.addTerritory(points)
               this.$notification({ type: 'success', text: 'Updated territory boundary' })
+              break
+            case 'maps':
+              await store.dispatch.maps.update({
+                ...layer.options.prevMap,
+                bounds: points
+              })
+              this.$notification({ type: 'success', text: 'Edited map boundary' })
           }
         } else if (layer instanceof CircleMarker) {
           try {
@@ -398,18 +428,28 @@ export default Vue.extend({
       e.layers.eachLayer(async layer => {
         if (layer instanceof Polygon) {
           switch (this.editLayer) {
-            case 'territory':
+            case 'territory': {
               await store.dispatch.territory.updatePoints([])
               this.layers.territory.clearLayers()
               const map = this.map as DrawMap
               map.removeControl(this.editDrawControl)
               map.addControl(this.drawControl)
               this.$notification({ type: 'success', text: 'Deleted territory boundary' })
+              break
+            }
+            case 'maps': {
+              const id = layer.options.prevMap._id
+              if (!id) throw new Error('No Id saved on map')
+              await store.dispatch.maps.delete(id)
+              this.layers.maps.removeLayer(layer)
+              this.$notification({ type: 'success', text: 'Deleted map' })
+            }
           }
         } else if (layer instanceof CircleMarker) {
           try {
-            if (!layer.options.prevInfoText._id) throw new Error('No Id saved on marker')
-            await store.dispatch.info.delete(layer.options.prevInfoText._id)
+            const id = layer.options.prevInfoText._id
+            if (!id) throw new Error('No Id saved on marker')
+            await store.dispatch.info.delete(id)
             this.layers.info.removeLayer(layer)
             this.$notification({ type: 'success', text: 'Deleted information marker' })
           } catch {
@@ -463,13 +503,17 @@ export default Vue.extend({
       this.activeInfoText = ''
       this.activeInfoType = 'Houses'
     },
-    selectDrawing (layer: CircleMarker): void {
-      this.deselectDrawing()
-      this.activeDrawing = layer
-      const tooltip = layer.getTooltip()
-      this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
-      this.activeInfoType = layer.options.prevInfoText.type
-      this.dialogOpen = true
+    selectDrawing (layer: CircleMarker | Polygon): void {
+      if (layer instanceof CircleMarker) {
+        this.deselectDrawing()
+        this.activeDrawing = layer
+        const tooltip = layer.getTooltip()
+        this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
+        this.activeInfoType = layer.options.prevInfoText.type
+        this.dialogOpen = true
+      } else {
+
+      }
     },
     onDrawingClick (e: L.LeafletMouseEvent): void {
       if (this.deleteMode) return
