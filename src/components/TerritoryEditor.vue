@@ -328,6 +328,8 @@ export default Vue.extend({
     addMap (e: IMap): Polygon {
       const layer = this.$leaflet.polygon([e.bounds], { prevMap: e })
       if (this.editLayer === 'maps') layer.on({ click: this.onDrawingClick })
+      layer.setStyle({ color: 'orange' })
+      layer.bindTooltip(e.name, { permanent: true, interactive: false, direction: 'center' })
       this.layers.maps.addLayer(layer)
       return layer
     },
@@ -509,6 +511,8 @@ export default Vue.extend({
         }
         await store.dispatch.maps.update(updatedMap)
         Object.assign(this.activeMap.options.prevMap, this.editableMap)
+        const tooltip = this.activeMap.getTooltip()
+        if (tooltip) tooltip.setContent(updatedMap.name)
         this.deselectDrawing()
         this.$notification({ type: 'success', text: 'Updated map' })
       } catch {
