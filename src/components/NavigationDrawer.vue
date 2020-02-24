@@ -1,27 +1,42 @@
 <template>
-  <v-navigation-drawer v-model="drawer" app>
+  <v-navigation-drawer v-model="drawer" app stateless>
     <v-toolbar>
       <v-btn icon @click="closeDrawer">
         <v-icon>mdi-close</v-icon>
       </v-btn>
       <v-toolbar-title>Navigation</v-toolbar-title>
     </v-toolbar>
-    <v-list nav>
-      <v-list-item v-for="item of navItems" :key="item.title" :to="item.to">
+    <v-list
+      v-for="list of navLists"
+      :key="list.subheader"
+      nav
+      subheader
+    >
+      <v-subheader v-text="list.subheader" />
+      <v-list-item v-for="item of list.items" :key="item.title" :to="item.to">
         <v-list-item-icon>
           <v-icon v-text="item.icon" />
         </v-list-item-icon>
         <v-list-item-title v-text="item.title" />
       </v-list-item>
     </v-list>
-    <v-list nav>
-      <v-list-item @click="logout">
-        <v-list-item-icon>
-          <v-icon>mdi-logout-variant</v-icon>
-        </v-list-item-icon>
-        <v-list-item-title>Logout</v-list-item-title>
-      </v-list-item>
-    </v-list>
+    <template v-slot:append>
+      <v-list nav>
+        <v-divider />
+        <v-list-item to="/settings">
+          <v-list-item-icon>
+            <v-icon>mdi-settings</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Settings</v-list-item-title>
+        </v-list-item>
+        <v-list-item @click="logout">
+          <v-list-item-icon>
+            <v-icon>mdi-logout-variant</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Logout</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </template>
   </v-navigation-drawer>
 </template>
 
@@ -29,6 +44,15 @@
 import Vue from 'vue'
 
 import store from '@/store'
+
+interface INavList {
+  subheader: string
+  items: {
+    to: string
+    icon: string
+    title: string
+  }[]
+}
 
 export default Vue.extend({
   name: 'NavigationDrawer',
@@ -42,14 +66,23 @@ export default Vue.extend({
         store.commit.drawer.setDrawer(val)
       }
     },
-    navItems (): { to: string, icon: string, title: string }[] {
+    navLists (): INavList[] {
       return [
-        { to: '/', icon: 'mdi-home', title: 'Home' },
-        { to: '/territory', icon: 'mdi-map', title: 'Territory' },
-        { to: '/image', icon: 'mdi-image', title: 'Image' },
-        { to: '/maps', icon: 'mdi-map-search', title: 'Maps' },
-        { to: '/info', icon: 'mdi-map-marker', title: 'Info' },
-        { to: '/settings', icon: 'mdi-settings', title: 'Settings' }
+        {
+          subheader: 'Overview',
+          items: [
+            { to: '/', icon: 'mdi-home', title: 'Home' }
+          ]
+        },
+        {
+          subheader: 'Editors',
+          items: [
+            { to: '/territory', icon: 'mdi-map', title: 'Territory' },
+            { to: '/image', icon: 'mdi-image', title: 'Image' },
+            { to: '/maps', icon: 'mdi-map-search', title: 'Maps' },
+            { to: '/info', icon: 'mdi-map-marker', title: 'Info' }
+          ]
+        }
       ]
     }
   },
