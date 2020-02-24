@@ -29,6 +29,23 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="mapDialogOpen" max-width="300">
+      <v-card>
+        <v-card-title>Edit Map</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="editableMap.name" label="Name" />
+          <v-text-field v-model="editableMap.group" label="Group" />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="error" @click="deselectDrawing">
+            CANCEL
+          </v-btn>
+          <v-btn color="success" @click="onUpdateMap">
+            SAVE
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-btn
       v-if="showInfoToggle"
       color="primary"
@@ -74,6 +91,10 @@ export default Vue.extend({
     const { src } = store.state.territory.overlay
     const points = store.state.territory.overlay.bounds || store.state.territory.points
     const bounds = new this.$leaflet.Polygon([points]).getBounds()
+    const editableMap: Pick<IMap, 'name' | 'group'> = {
+      name: '',
+      group: ''
+    }
     return {
       loading: true,
       layers,
@@ -82,9 +103,12 @@ export default Vue.extend({
       drawControl: new this.$leaflet.Control.Draw(),
       editDrawControl: new this.$leaflet.Control.Draw(),
       dialogOpen: false,
+      mapDialogOpen: false,
       activeDrawing: null as CircleMarker | null,
       activeInfoText: '',
       activeInfoType: 'House' as IInfoType,
+      activeMap: null as Polygon | null,
+      editableMap,
       deleteMode: false,
       showLabels: false
     }
@@ -485,6 +509,21 @@ export default Vue.extend({
         this.$notification({ type: 'error', text: 'Could not update information marker text' })
       }
     },
+    async onUpdateMap (): Promise<void> {
+      if (!this.activeMap) return
+      try {
+        const updatedMap: IMap = {
+          ...this.activeMap.options.prevMap,
+          ...this.editableMap
+        }
+        await store.dispatch.maps.update(updatedMap)
+        Object.assign(this.activeMap.options.prevMap, this.editableMap)
+        this.deselectDrawing()
+        this.$notification({ type: 'success', text: 'Updated map' })
+      } catch {
+        this.$notification({ type: 'error', text: 'Could not update map' })
+      }
+    },
     markerWithinPolygon (marker: CircleMarker, polygon: Polygon): boolean {
       const polyPoints = (polygon.getLatLngs() as L.LatLng[][])[0]
       const { lat: x, lng: y } = marker.getLatLng()
@@ -499,9 +538,12 @@ export default Vue.extend({
     },
     deselectDrawing (): void {
       this.activeDrawing = null
+      this.activeMap = null
       this.dialogOpen = false
+      this.mapDialogOpen = false
       this.activeInfoText = ''
       this.activeInfoType = 'Houses'
+      this.editableMap = { name: '', group: '' }
     },
     selectDrawing (layer: CircleMarker | Polygon): void {
       if (layer instanceof CircleMarker) {
@@ -512,7 +554,10 @@ export default Vue.extend({
         this.activeInfoType = layer.options.prevInfoText.type
         this.dialogOpen = true
       } else {
-
+        this.deselectDrawing()
+        this.activeMap = layer
+        this.editableMap = { name: layer.options.prevMap.name, group: layer.options.prevMap.group }
+        this.mapDialogOpen = true
       }
     },
     onDrawingClick (e: L.LeafletMouseEvent): void {
