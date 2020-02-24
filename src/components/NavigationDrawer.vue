@@ -71,7 +71,8 @@ export default Vue.extend({
         {
           subheader: 'Overview',
           items: [
-            { to: '/', icon: 'mdi-home', title: 'Home' }
+            { to: '/', icon: 'mdi-home', title: 'Home' },
+            { to: '/territory-overview', icon: 'mdi-map', title: 'Territory' }
           ]
         },
         {

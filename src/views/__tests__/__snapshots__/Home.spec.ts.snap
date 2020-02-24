@@ -1,24 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Views/Home should match the snapshot 1`] = `
-<div class="container flex-column flex-nowrap align-start fill-height">
+<div class="container">
   <h1 class="headline mb-3">
     Welcome to Territory Assistant
   </h1>
-  <div class="editor v-card v-sheet theme--light">
-    <!---->
-    <div role="dialog" class="v-dialog__container">
-      <div role="document" class="v-dialog__content" style="z-index: 0;">
-        <div class="v-dialog" style="max-width: 300px; display: none;"></div>
-      </div>
-    </div>
-    <div role="dialog" class="v-dialog__container">
-      <div role="document" class="v-dialog__content" style="z-index: 0;">
-        <div class="v-dialog" style="max-width: 300px; display: none;"></div>
-      </div>
-    </div>
-    <!---->
-    <div id="map"></div>
-  </div>
+  <p>Use the navigation drawer in the top left to view or edit the territory.</p>
 </div>
 `;
