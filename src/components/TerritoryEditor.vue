@@ -361,21 +361,12 @@ export default Vue.extend({
               name: '',
               group: '',
               bounds: points,
+              houses: 0,
+              flats: 0,
               dncs: []
             })
             const newLayer = this.addMap(newMap)
             this.selectDrawing(newLayer)
-            // let count = 0
-            // this.layers.info.eachLayer(l => {
-            //   if (this.markerWithinPolygon(l as CircleMarker, layer)) {
-            //     const tooltip = l.getTooltip()
-            //     if (tooltip) {
-            //       const content = tooltip.getContent()
-            //       if (typeof content === 'string' && !Number.isNaN(+content)) count += +content
-            //     }
-            //   }
-            // })
-            // this.$notification({ type: 'success', text: 'Number of houses: ' + count })
           }
         }
       } else if (layer instanceof CircleMarker) {
@@ -523,18 +514,6 @@ export default Vue.extend({
       } catch {
         this.$notification({ type: 'error', text: 'Could not update map' })
       }
-    },
-    markerWithinPolygon (marker: CircleMarker, polygon: Polygon): boolean {
-      const polyPoints = (polygon.getLatLngs() as L.LatLng[][])[0]
-      const { lat: x, lng: y } = marker.getLatLng()
-      let inside = false
-      for (let i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
-        const { lat: xi, lng: yi } = polyPoints[i]
-        const { lat: xj, lng: yj } = polyPoints[j]
-        const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
-        if (intersect) inside = !inside
-      }
-      return inside
     },
     deselectDrawing (): void {
       this.activeDrawing = null
