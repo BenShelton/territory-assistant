@@ -6,11 +6,10 @@
     fill-height
   >
     <h1 class="headline mb-3">
-      Edit Maps
+      Territory Overview
     </h1>
     <TerritoryEditor
-      edit-layer="maps"
-      :toggle-layers="['image', 'territory', 'info']"
+      :active-layers="['image', 'territory', 'maps', 'info']"
     />
   </v-container>
 </template>
@@ -21,7 +20,7 @@ import Vue from 'vue'
 import TerritoryEditor from '@/components/TerritoryEditor.vue'
 
 export default Vue.extend({
-  name: 'Maps',
+  name: 'TerritoryOverview',
 
   components: {
     TerritoryEditor

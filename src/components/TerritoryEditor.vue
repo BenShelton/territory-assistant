@@ -29,6 +29,23 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="mapDialogOpen" max-width="300">
+      <v-card>
+        <v-card-title>Edit Map</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="editableMap.name" label="Name" />
+          <v-text-field v-model="editableMap.group" label="Group" />
+        </v-card-text>
+        <v-card-actions class="justify-end">
+          <v-btn color="error" @click="deselectDrawing">
+            CANCEL
+          </v-btn>
+          <v-btn color="success" @click="onUpdateMap">
+            SAVE
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-btn
       v-if="showInfoToggle"
       color="primary"
@@ -47,9 +64,9 @@ import Vue, { PropType } from 'vue'
 import store from '@/store'
 import { Polygon, CircleMarker, Control, DrawMap, DrawEvents, Rectangle } from 'leaflet'
 
-import { IInfoText, IInfoTypes, IInfoType, IPoint } from 'types'
+import { IInfoText, IInfoTypes, IInfoType, IPoint, IMap } from 'types'
 
-type LayerName = 'image' | 'territory' | 'map' | 'info'
+type LayerName = 'image' | 'territory' | 'maps' | 'info'
 
 export default Vue.extend({
   name: 'TerritoryEditor',
@@ -68,12 +85,16 @@ export default Vue.extend({
     const layers: Record<LayerName, L.FeatureGroup> = {
       image: new this.$leaflet.FeatureGroup(),
       territory: new this.$leaflet.FeatureGroup(),
-      map: new this.$leaflet.FeatureGroup(),
+      maps: new this.$leaflet.FeatureGroup(),
       info: new this.$leaflet.FeatureGroup()
     }
     const { src } = store.state.territory.overlay
     const points = store.state.territory.overlay.bounds || store.state.territory.points
     const bounds = new this.$leaflet.Polygon([points]).getBounds()
+    const editableMap: Pick<IMap, 'name' | 'group'> = {
+      name: '',
+      group: ''
+    }
     return {
       loading: true,
       layers,
@@ -82,9 +103,12 @@ export default Vue.extend({
       drawControl: new this.$leaflet.Control.Draw(),
       editDrawControl: new this.$leaflet.Control.Draw(),
       dialogOpen: false,
+      mapDialogOpen: false,
       activeDrawing: null as CircleMarker | null,
       activeInfoText: '',
       activeInfoType: 'House' as IInfoType,
+      activeMap: null as Polygon | null,
+      editableMap,
       deleteMode: false,
       showLabels: false
     }
@@ -118,7 +142,7 @@ export default Vue.extend({
         const layerMap: Record<LayerName, string> = {
           image: 'Image',
           territory: 'Territory',
-          map: 'Map',
+          maps: 'Maps',
           info: 'Info'
         }
         const overlays = this.toggleLayers.reduce((acc: Record<typeof layerMap[LayerName], L.FeatureGroup>, l) => {
@@ -156,7 +180,7 @@ export default Vue.extend({
           this.updateToolTexts('circlemarker', 'Information Marker')
           break
         case 'territory':
-        case 'map':
+        case 'maps':
           drawOptions.polygon = {
             allowIntersection: false,
             drawError: {
@@ -167,7 +191,7 @@ export default Vue.extend({
               color: '#97009c'
             }
           }
-          this.updateToolTexts('polygon', 'Boundary')
+          this.updateToolTexts('polygon', this.editLayer === 'maps' ? 'Map' : 'Boundary')
           break
         case 'image':
           remove = false
@@ -251,6 +275,14 @@ export default Vue.extend({
               this.addInfoText(b)
             })
             break
+          case this.layers.maps:
+            await store.dispatch.maps.load()
+            const maps = store.state.maps.list
+            layer.clearLayers()
+            maps.forEach((b) => {
+              this.addMap(b)
+            })
+            break
           case this.layers.territory:
             const points = store.state.territory.points
             if (points.length) {
@@ -285,13 +317,20 @@ export default Vue.extend({
       }
     },
     addInfoText (e: IInfoText): CircleMarker {
-      // @ts-ignore
-      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', customId: e._id, customType: e.type || 'Houses' })
+      const layer = new this.$leaflet.CircleMarker({ lat: e.lat, lng: e.lng }, { color: 'blue', prevInfoText: { ...e, type: e.type || 'Houses' } })
       layer.bindTooltip(e.content, { permanent: false, interactive: false, direction: 'top' })
       if (this.showLabels) layer.toggleTooltip()
       if (this.editLayer === 'info') layer.on({ click: this.onDrawingClick })
-      layer.setStyle({ color: this.getInfoColor(layer.options.customType) })
+      layer.setStyle({ color: this.getInfoColor(layer.options.prevInfoText.type) })
       this.layers.info.addLayer(layer)
+      return layer
+    },
+    addMap (e: IMap): Polygon {
+      const layer = this.$leaflet.polygon([e.bounds], { prevMap: e })
+      if (this.editLayer === 'maps') layer.on({ click: this.onDrawingClick })
+      layer.setStyle({ color: 'orange' })
+      layer.bindTooltip(e.name, { permanent: true, interactive: false, direction: 'center' })
+      this.layers.maps.addLayer(layer)
       return layer
     },
     getInfoColor (type: IInfoType): string {
@@ -312,26 +351,25 @@ export default Vue.extend({
     async addDrawing (e: DrawEvents.Created): Promise<void> {
       const { layer } = e
       if (layer instanceof Polygon) {
+        const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
         switch (this.editLayer) {
           case 'territory':
-            const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
             await store.dispatch.territory.updatePoints(points)
             this.addTerritory(points)
             this.$notification({ type: 'success', text: 'Added territory boundary' })
             break
-          case 'map':
-            this.layers.map.addLayer(layer)
-            let count = 0
-            this.layers.info.eachLayer(l => {
-              if (this.markerWithinPolygon(l as CircleMarker, layer)) {
-                const tooltip = l.getTooltip()
-                if (tooltip) {
-                  const content = tooltip.getContent()
-                  if (typeof content === 'string' && !Number.isNaN(+content)) count += +content
-                }
-              }
+          case 'maps': {
+            const newMap = await store.dispatch.maps.add({
+              name: '',
+              group: '',
+              bounds: points,
+              houses: 0,
+              flats: 0,
+              dncs: []
             })
-            this.$notification({ type: 'success', text: 'Number of houses: ' + count })
+            const newLayer = this.addMap(newMap)
+            this.selectDrawing(newLayer)
+          }
         }
       } else if (layer instanceof CircleMarker) {
         const { lat, lng } = layer.getLatLng()
@@ -367,12 +405,19 @@ export default Vue.extend({
           await store.dispatch.territory.updateOverlay({ bounds })
           this.$notification({ type: 'success', text: 'Updated territory image' })
         } else if (layer instanceof Polygon) {
+          const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
           switch (this.editLayer) {
             case 'territory':
-              const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
               await store.dispatch.territory.updatePoints(points)
               this.addTerritory(points)
               this.$notification({ type: 'success', text: 'Updated territory boundary' })
+              break
+            case 'maps':
+              await store.dispatch.maps.update({
+                ...layer.options.prevMap,
+                bounds: points
+              })
+              this.$notification({ type: 'success', text: 'Edited map boundary' })
           }
         } else if (layer instanceof CircleMarker) {
           try {
@@ -380,13 +425,10 @@ export default Vue.extend({
             const tooltip = layer.getTooltip()
             const content = tooltip ? String(tooltip.getContent()) : '0'
             const updatedInfo: IInfoText = {
-              // @ts-ignore
-              _id: layer.options.customId,
+              ...layer.options.prevInfoText,
               content,
               lat,
-              lng,
-              // @ts-ignore
-              type: layer.options.customType || 'Houses'
+              lng
             }
             await store.dispatch.info.update(updatedInfo)
             this.$notification({ type: 'success', text: 'Edited information marker' })
@@ -403,18 +445,28 @@ export default Vue.extend({
       e.layers.eachLayer(async layer => {
         if (layer instanceof Polygon) {
           switch (this.editLayer) {
-            case 'territory':
+            case 'territory': {
               await store.dispatch.territory.updatePoints([])
               this.layers.territory.clearLayers()
               const map = this.map as DrawMap
               map.removeControl(this.editDrawControl)
               map.addControl(this.drawControl)
               this.$notification({ type: 'success', text: 'Deleted territory boundary' })
+              break
+            }
+            case 'maps': {
+              const id = layer.options.prevMap._id
+              if (!id) throw new Error('No Id saved on map')
+              await store.dispatch.maps.delete(id)
+              this.layers.maps.removeLayer(layer)
+              this.$notification({ type: 'success', text: 'Deleted map' })
+            }
           }
         } else if (layer instanceof CircleMarker) {
           try {
-            // @ts-ignore
-            await store.dispatch('info/delete', layer.options.customId)
+            const id = layer.options.prevInfoText._id
+            if (!id) throw new Error('No Id saved on marker')
+            await store.dispatch.info.delete(id)
             this.layers.info.removeLayer(layer)
             this.$notification({ type: 'success', text: 'Deleted information marker' })
           } catch {
@@ -433,19 +485,16 @@ export default Vue.extend({
         const { lat, lng } = this.activeDrawing.getLatLng()
         const content = this.activeInfoText.trim() || '0'
         const updatedInfo: IInfoText = {
-          // @ts-ignore
-          _id: this.activeDrawing.options.customId,
+          ...this.activeDrawing.options.prevInfoText,
           content,
           lat,
           lng,
-          // @ts-ignore
           type: this.activeInfoType || 'Houses'
         }
         await store.dispatch.info.update(updatedInfo)
         const tooltip = this.activeDrawing.getTooltip()
         if (tooltip) tooltip.setContent(content)
-        // @ts-ignore
-        this.activeDrawing.options.customType = updatedInfo.type
+        this.activeDrawing.options.prevInfoText = updatedInfo
         this.activeDrawing.setStyle({ color: this.getInfoColor(updatedInfo.type) })
         this.deselectDrawing()
         this.$notification({ type: 'success', text: 'Updated information marker text' })
@@ -453,32 +502,46 @@ export default Vue.extend({
         this.$notification({ type: 'error', text: 'Could not update information marker text' })
       }
     },
-    markerWithinPolygon (marker: CircleMarker, polygon: Polygon): boolean {
-      const polyPoints = (polygon.getLatLngs() as L.LatLng[][])[0]
-      const { lat: x, lng: y } = marker.getLatLng()
-      let inside = false
-      for (let i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
-        const { lat: xi, lng: yi } = polyPoints[i]
-        const { lat: xj, lng: yj } = polyPoints[j]
-        const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)
-        if (intersect) inside = !inside
+    async onUpdateMap (): Promise<void> {
+      if (!this.activeMap) return
+      try {
+        const updatedMap: IMap = {
+          ...this.activeMap.options.prevMap,
+          ...this.editableMap
+        }
+        await store.dispatch.maps.update(updatedMap)
+        Object.assign(this.activeMap.options.prevMap, this.editableMap)
+        const tooltip = this.activeMap.getTooltip()
+        if (tooltip) tooltip.setContent(updatedMap.name)
+        this.deselectDrawing()
+        this.$notification({ type: 'success', text: 'Updated map' })
+      } catch {
+        this.$notification({ type: 'error', text: 'Could not update map' })
       }
-      return inside
     },
     deselectDrawing (): void {
       this.activeDrawing = null
+      this.activeMap = null
       this.dialogOpen = false
+      this.mapDialogOpen = false
       this.activeInfoText = ''
       this.activeInfoType = 'Houses'
+      this.editableMap = { name: '', group: '' }
     },
-    selectDrawing (layer: CircleMarker): void {
-      this.deselectDrawing()
-      this.activeDrawing = layer
-      const tooltip = layer.getTooltip()
-      this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
-      // @ts-ignore
-      this.activeInfoType = layer.options.customType
-      this.dialogOpen = true
+    selectDrawing (layer: CircleMarker | Polygon): void {
+      if (layer instanceof CircleMarker) {
+        this.deselectDrawing()
+        this.activeDrawing = layer
+        const tooltip = layer.getTooltip()
+        this.activeInfoText = tooltip ? String(tooltip.getContent()) : ''
+        this.activeInfoType = layer.options.prevInfoText.type
+        this.dialogOpen = true
+      } else {
+        this.deselectDrawing()
+        this.activeMap = layer
+        this.editableMap = { name: layer.options.prevMap.name, group: layer.options.prevMap.group }
+        this.mapDialogOpen = true
+      }
     },
     onDrawingClick (e: L.LeafletMouseEvent): void {
       if (this.deleteMode) return

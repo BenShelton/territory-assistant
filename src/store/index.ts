@@ -6,7 +6,7 @@ import { createDirectStore } from 'direct-vuex'
 import auth from './modules/auth'
 import drawer from './modules/drawer'
 import info from './modules/info'
-import map from './modules/map'
+import maps from './modules/maps'
 import notification from './modules/notification'
 import territory from './modules/territory'
 
@@ -17,7 +17,7 @@ const { store, rootActionContext, moduleActionContext } = createDirectStore({
     auth,
     drawer,
     info,
-    map,
+    maps,
     notification,
     territory
   },
