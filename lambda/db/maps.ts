@@ -3,7 +3,7 @@ import setup from './setup'
 import { getInfo } from './info'
 
 import { IMap, API, IInfoText, IPoint } from 'types'
-import { MongoInterface } from 'types/mongo'
+import { MongoInterface, IBulkWrite } from 'types/mongo'
 
 type CollMap = MongoInterface<IMap>
 
@@ -58,6 +58,19 @@ export async function addMap (map: API.Maps.Add.Request): Promise<CollMap> {
   const newMap: CollMap | null = newMapResult && newMapResult.ops && newMapResult.ops[0]
   if (!newMap) throw new Error('Adding New Map was unsuccessful')
   return newMap
+}
+
+export async function recalculateMaps (): Promise<IMap[]> {
+  const maps = await getMap()
+  await addHouseCounts(maps)
+  const operations: IBulkWrite<CollMap>[] = maps.map(map => {
+    const filter = { _id: new ObjectID(map._id) }
+    const updateMap = { houses: map.houses, flats: map.flats }
+    return { updateOne: { filter, update: { $set: updateMap } } }
+  })
+  const coll = await getCollection
+  await coll.bulkWrite(operations, { ordered: false })
+  return getMap()
 }
 
 export async function updateMap (id: string, map: API.Maps.Update.Request): Promise<CollMap> {

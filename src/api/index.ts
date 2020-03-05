@@ -32,6 +32,7 @@ const api = {
   maps: {
     list: () => request<API.Maps.List.Response>('maps', { method: 'GET' }),
     add: (data: API.Maps.Add.Request) => request<API.Maps.Add.Response>('maps', { method: 'POST', body: JSON.stringify(data) }),
+    recalculate: () => request<API.Maps.Recalculate.Response>('maps/recalculate', { method: 'PUT' }),
     update: (data: API.Maps.Update.Request) => request<API.Maps.Update.Response>('maps/' + data._id, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: API.Maps.Delete.Request) => request<API.Maps.Delete.Response>('maps/' + id, { method: 'DELETE' })
   },

@@ -1,5 +1,12 @@
 <template>
-  <v-navigation-drawer v-model="drawer" app stateless>
+  <v-navigation-drawer
+    v-model="drawer"
+    app
+    stateless
+    temporary
+    bottom
+    :width="300"
+  >
     <v-toolbar>
       <v-btn icon @click="closeDrawer">
         <v-icon>mdi-close</v-icon>
@@ -72,7 +79,8 @@ export default Vue.extend({
           subheader: 'Overview',
           items: [
             { to: '/', icon: 'mdi-home', title: 'Home' },
-            { to: '/territory-overview', icon: 'mdi-map', title: 'Territory' }
+            { to: '/territory-overview', icon: 'mdi-map', title: 'Territory' },
+            { to: '/maps-overview', icon: 'mdi-map-search', title: 'Maps' }
           ]
         },
         {
