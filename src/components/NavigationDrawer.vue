@@ -1,5 +1,12 @@
 <template>
-  <v-navigation-drawer v-model="drawer" app stateless>
+  <v-navigation-drawer
+    v-model="drawer"
+    app
+    stateless
+    temporary
+    bottom
+    :width="300"
+  >
     <v-toolbar>
       <v-btn icon @click="closeDrawer">
         <v-icon>mdi-close</v-icon>
