@@ -1,7 +1,7 @@
 import { Handler, APIGatewayEvent } from 'aws-lambda'
 
 import { validateToken } from './db/auth'
-import { getMap, addMap, updateMap, deleteMap } from './db/maps'
+import { getMap, addMap, updateMap, deleteMap, recalculateMaps } from './db/maps'
 import { success, badRequest, notFound, RouteMatcher, unauthorized, isObject, isPointList } from './helpers'
 
 import { IMap, API } from 'types'
@@ -40,7 +40,12 @@ const handler: Handler = async (event: APIGatewayEvent) => {
     const res = await addMap(data)
     return success<API.Maps.Add.Response>(res)
 
-  // PUT /map/:id
+  // PUT /maps/recalculate
+  } else if (matcher.testRoute('PUT', '/maps/recalculate')) {
+    const list = await recalculateMaps()
+    return success<API.Maps.List.Response>(list)
+
+  // PUT /maps/:id
   } else if (matcher.testRoute('PUT', '/maps/:id')) {
     const { id } = matcher.pathParams
     if (!id) return badRequest('Invalid ID')

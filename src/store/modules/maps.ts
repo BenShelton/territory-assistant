@@ -24,6 +24,12 @@ const storeModule = createModule({
       commit.addMap(res)
       return res
     },
+    async recalculate (context): Promise<void> {
+      const { commit } = storeModuleActionContext(context)
+      commit.setLoading(true)
+      const res = await api.maps.recalculate()
+      commit.setMaps(res)
+    },
     async update (context, payload: IMap): Promise<IMap> {
       const { commit } = storeModuleActionContext(context)
       const res = await api.maps.update(payload)

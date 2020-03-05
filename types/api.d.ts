@@ -43,6 +43,10 @@ export namespace API {
       export type Response = IMap
     }
 
+    export namespace Recalculate {
+      export type Response = IMap[]
+    }
+
     export namespace Update {
       export type Request = IMap
       export type Response = IMap

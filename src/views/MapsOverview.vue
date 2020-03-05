@@ -3,6 +3,18 @@
     <h1 class="headline mb-3">
       Maps Overview
     </h1>
+    <v-card class="my-5">
+      <v-card-actions>
+        <v-btn
+          color="primary"
+          :loading="recalculating"
+          :disabled="recalculating"
+          @click="onRecalculate"
+        >
+          Recalculate All Maps
+        </v-btn>
+      </v-card-actions>
+    </v-card>
     <v-data-table
       class="elevation-1"
       :headers="headers"
@@ -32,6 +44,10 @@ export default Vue.extend({
     store.dispatch.maps.load()
   },
 
+  data: () => ({
+    recalculating: false
+  }),
+
   computed: {
     headers (): ITableHeader[] {
       return [
@@ -50,6 +66,14 @@ export default Vue.extend({
     },
     loading (): boolean {
       return store.state.maps.loading
+    }
+  },
+
+  methods: {
+    async onRecalculate (): Promise<void> {
+      if (!confirm('Are you sure you want to recalculate all maps? This could take a few seconds.')) return
+      await store.dispatch.maps.recalculate()
+      this.$notification({ type: 'success', text: 'All maps have been recalculated.' })
     }
   }
 })
