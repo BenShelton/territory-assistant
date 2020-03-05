@@ -5,6 +5,7 @@ import store from '@/store'
 import Login from '@/views/Login.vue'
 import Home from '@/views/Home.vue'
 import TerritoryOverview from '@/views/TerritoryOverview.vue'
+import MapsOverview from '@/views/MapsOverview.vue'
 import Territory from '@/views/Territory.vue'
 import ImageOverlay from '@/views/ImageOverlay.vue'
 import Maps from '@/views/Maps.vue'
@@ -28,6 +29,11 @@ const routes: RouteConfig[] = [
     path: '/territory-overview',
     name: 'territory-overview',
     component: TerritoryOverview
+  },
+  {
+    path: '/maps-overview',
+    name: 'maps-overview',
+    component: MapsOverview
   },
   {
     path: '/territory',
