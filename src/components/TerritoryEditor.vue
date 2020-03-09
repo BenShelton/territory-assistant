@@ -302,7 +302,7 @@ export default Vue.extend({
         this.layers.image.addLayer(rect)
         this.imageOverlay.setOpacity(0.6)
       } else {
-        this.imageOverlay.setOpacity(1)
+        this.imageOverlay.setOpacity(this.toggleLayers.includes('image') ? 0.6 : 1)
       }
       this.imageOverlay.addTo(map)
     },
