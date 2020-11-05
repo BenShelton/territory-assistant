@@ -116,7 +116,7 @@ export default Vue.extend({
 
   computed: {
     infoTypes (): IInfoTypes {
-      return ['Houses', 'Flats', 'Comment', 'Todo']
+      return ['Houses', 'Flats', 'Businesses', 'Comment', 'Todo']
     },
     showInfoToggle (): boolean {
       return this.editLayer === 'info' || this.toggleLayers.includes('info')
@@ -336,6 +336,7 @@ export default Vue.extend({
     getInfoColor (type: IInfoType): string {
       switch (type) {
         case 'Flats': return 'purple'
+        case 'Businesses': return 'green'
         case 'Comment': return 'grey'
         case 'Todo': return 'red'
         default: return 'blue'

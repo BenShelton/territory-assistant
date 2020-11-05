@@ -6,6 +6,7 @@ export interface IMap {
   group: string
   houses: number
   flats: number
+  businesses: number
   bounds: IPoint[]
   dncs: string[]
 }

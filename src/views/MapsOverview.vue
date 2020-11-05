@@ -79,6 +79,7 @@ export default Vue.extend({
         { text: 'Group', value: 'group' },
         { text: 'Houses', value: 'houses' },
         { text: 'Flats', value: 'flats' },
+        { text: 'Businesses', value: 'businesses' },
         { text: 'DNC Count', value: 'dncCount' }
       ]
     },
