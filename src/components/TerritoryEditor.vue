@@ -366,6 +366,7 @@ export default Vue.extend({
               bounds: points,
               houses: 0,
               flats: 0,
+              businesses: 0,
               dncs: []
             })
             const newLayer = this.addMap(newMap)
