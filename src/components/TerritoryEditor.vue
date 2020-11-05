@@ -116,7 +116,7 @@ export default Vue.extend({
 
   computed: {
     infoTypes (): IInfoTypes {
-      return ['Houses', 'Flats', 'Comment', 'Todo']
+      return ['Houses', 'Flats', 'Businesses', 'Comment', 'Todo']
     },
     showInfoToggle (): boolean {
       return this.editLayer === 'info' || this.toggleLayers.includes('info')
@@ -302,7 +302,7 @@ export default Vue.extend({
         this.layers.image.addLayer(rect)
         this.imageOverlay.setOpacity(0.6)
       } else {
-        this.imageOverlay.setOpacity(1)
+        this.imageOverlay.setOpacity(this.toggleLayers.includes('image') ? 0.6 : 1)
       }
       this.imageOverlay.addTo(map)
     },
@@ -336,6 +336,7 @@ export default Vue.extend({
     getInfoColor (type: IInfoType): string {
       switch (type) {
         case 'Flats': return 'purple'
+        case 'Businesses': return 'green'
         case 'Comment': return 'grey'
         case 'Todo': return 'red'
         default: return 'blue'
@@ -365,6 +366,7 @@ export default Vue.extend({
               bounds: points,
               houses: 0,
               flats: 0,
+              businesses: 0,
               dncs: []
             })
             const newLayer = this.addMap(newMap)

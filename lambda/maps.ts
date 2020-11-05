@@ -8,7 +8,7 @@ import { IMap, API } from 'types'
 
 function isMap (obj: unknown): obj is IMap {
   if (!isObject(obj)) return false
-  const baseMap: Omit<IMap, 'bounds' | 'dncs' | 'houses' | 'flats'> = { name: '', group: '' }
+  const baseMap: Omit<IMap, 'bounds' | 'dncs' | 'houses' | 'flats' | 'businesses'> = { name: '', group: '' }
   if (!isPointList(obj.bounds)) return false
   if (!Array.isArray(obj.dncs) || obj.dncs.some(dnc => typeof dnc !== 'string')) return false
   return Object.entries(baseMap)

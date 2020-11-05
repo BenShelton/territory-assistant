@@ -1,4 +1,4 @@
-export type IInfoTypes = ['Houses', 'Flats', 'Comment', 'Todo']
+export type IInfoTypes = ['Houses', 'Flats', 'Businesses', 'Comment', 'Todo']
 export type IInfoType = IInfoTypes[number]
 
 export interface ITerritory {
