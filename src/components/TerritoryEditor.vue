@@ -266,7 +266,7 @@ export default Vue.extend({
             layer.clearLayers()
             this.addImage()
             break
-          case this.layers.info:
+          case this.layers.info: {
             this.showLabels = false
             await store.dispatch.info.load()
             const texts = store.state.info.texts
@@ -275,7 +275,8 @@ export default Vue.extend({
               this.addInfoText(b)
             })
             break
-          case this.layers.maps:
+          }
+          case this.layers.maps: {
             await store.dispatch.maps.load()
             const maps = store.state.maps.list
             layer.clearLayers()
@@ -283,11 +284,13 @@ export default Vue.extend({
               this.addMap(b)
             })
             break
-          case this.layers.territory:
+          }
+          case this.layers.territory: {
             const points = store.state.territory.points
             if (points.length) {
               this.addTerritory(points)
             }
+          }
         }
       } finally {
         this.loading = false

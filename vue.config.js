@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/explicit-function-return-type */
 const { join } = require('path')
 
 function resolve (dir) {
@@ -20,7 +20,7 @@ module.exports = {
     resolve: {
       alias: {
         '@': resolve('src'),
-        'UnitTest': resolve('tests/unit')
+        UnitTest: resolve('tests/unit')
       }
     }
   }
