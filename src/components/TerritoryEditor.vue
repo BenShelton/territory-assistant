@@ -59,7 +59,7 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue'
+import Vue, { PropOptions, PropType } from 'vue'
 
 import store from '@/store'
 import { Polygon, CircleMarker, Control, DrawMap, DrawEvents, Rectangle } from 'leaflet'
@@ -74,7 +74,7 @@ export default Vue.extend({
   props: {
     activeLayers: { type: Array as PropType<LayerName[]>, default: () => [] },
     toggleLayers: { type: Array as PropType<LayerName[]>, default: () => [] },
-    editLayer: { type: String as PropType<LayerName | ''>, default: '' }
+    editLayer: { type: String, default: '' } as PropOptions<LayerName | ''>
   },
 
   mounted () {

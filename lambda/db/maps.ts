@@ -54,13 +54,13 @@ export async function getMap (): Promise<IMap[]> {
   return map as IMap[]
 }
 
-export async function addMap (map: API.Maps.Add.Request): Promise<CollMap> {
+export async function addMap (map: API.Maps.Add.Request): Promise<IMap> {
   await addHouseCounts([map])
   const coll = await getCollection
   const newMapResult = await coll.insertOne(map)
   const newMap: CollMap | null = newMapResult && newMapResult.ops && newMapResult.ops[0]
   if (!newMap) throw new Error('Adding New Map was unsuccessful')
-  return newMap
+  return newMap as IMap
 }
 
 export async function recalculateMaps (): Promise<IMap[]> {
@@ -76,7 +76,7 @@ export async function recalculateMaps (): Promise<IMap[]> {
   return getMap()
 }
 
-export async function updateMap (id: string, map: API.Maps.Update.Request): Promise<CollMap> {
+export async function updateMap (id: string, map: API.Maps.Update.Request): Promise<IMap> {
   await addHouseCounts([map])
   const coll = await getCollection
   const query = { _id: new ObjectID(id) }
@@ -85,7 +85,7 @@ export async function updateMap (id: string, map: API.Maps.Update.Request): Prom
   const update: UpdateQuery<CollMap> = { $set: updateMap }
   const { value } = await coll.findOneAndUpdate(query, update, { returnOriginal: false })
   if (!value) throw new Error('Updating Map was unsuccessful')
-  return value
+  return value as IMap
 }
 
 export async function deleteMap (id: API.Maps.Delete.Request): Promise<void> {
