@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { API } from 'types'
 import store from '@/store'
 import router from '@/router'
