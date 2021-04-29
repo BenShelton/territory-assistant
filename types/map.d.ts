@@ -7,6 +7,7 @@ export interface IMap {
   houses: number
   flats: number
   businesses: number
+  inaccessible: number
   bounds: IPoint[]
   dncs: string[]
 }

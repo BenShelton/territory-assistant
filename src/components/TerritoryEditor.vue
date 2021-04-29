@@ -116,7 +116,7 @@ export default Vue.extend({
 
   computed: {
     infoTypes (): IInfoTypes {
-      return ['Houses', 'Flats', 'Businesses', 'Comment', 'Todo']
+      return ['Houses', 'Flats', 'Businesses', 'Inaccessible', 'Comment', 'Todo']
     },
     showInfoToggle (): boolean {
       return this.editLayer === 'info' || this.toggleLayers.includes('info')
@@ -340,6 +340,7 @@ export default Vue.extend({
       switch (type) {
         case 'Flats': return 'purple'
         case 'Businesses': return 'green'
+        case 'Inaccessible': return 'black'
         case 'Comment': return 'grey'
         case 'Todo': return 'red'
         default: return 'blue'
@@ -370,6 +371,7 @@ export default Vue.extend({
               houses: 0,
               flats: 0,
               businesses: 0,
+              inaccessible: 0,
               dncs: []
             })
             const newLayer = this.addMap(newMap)

@@ -31,6 +31,7 @@ async function addHouseCounts (maps: IMap[]): Promise<void> {
     let houses = 0
     let flats = 0
     let businesses = 0
+    let inaccessible = 0
     infoTexts.forEach(t => {
       if (t.type === 'Comment' || t.type === 'Todo') return
       if (textWithinBounds(t, map.bounds)) {
@@ -38,6 +39,7 @@ async function addHouseCounts (maps: IMap[]): Promise<void> {
         if (Number.isInteger(+count)) {
           if (t.type === 'Flats') flats += +count
           else if (t.type === 'Businesses') businesses += +count
+          else if (t.type === 'Inaccessible') inaccessible += +count
           else houses += +count
         }
       }
@@ -45,6 +47,7 @@ async function addHouseCounts (maps: IMap[]): Promise<void> {
     map.houses = houses
     map.flats = flats
     map.businesses = businesses
+    map.inaccessible = inaccessible
   })
 }
 
@@ -68,7 +71,7 @@ export async function recalculateMaps (): Promise<IMap[]> {
   await addHouseCounts(maps)
   const operations: IBulkWrite<CollMap>[] = maps.map(map => {
     const filter = { _id: new ObjectID(map._id) }
-    const updateMap = { houses: map.houses, flats: map.flats, businesses: map.businesses }
+    const updateMap = { houses: map.houses, flats: map.flats, businesses: map.businesses, inaccessible: map.inaccessible }
     return { updateOne: { filter, update: { $set: updateMap } } }
   })
   const coll = await getCollection

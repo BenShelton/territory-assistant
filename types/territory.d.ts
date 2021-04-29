@@ -1,5 +1,10 @@
-export type IInfoTypes = ['Houses', 'Flats', 'Businesses', 'Comment', 'Todo']
+export type IInfoTypes = ['Houses', 'Flats', 'Businesses', 'Inaccessible', 'Comment', 'Todo']
 export type IInfoType = IInfoTypes[number]
+
+export interface IPoint {
+  lat: number
+  lng: number
+}
 
 export interface ITerritory {
   overlay: {
@@ -15,9 +20,4 @@ export interface IInfoText {
   lat: number
   lng: number
   type: IInfoType
-}
-
-export interface IPoint {
-  lat: number
-  lng: number
 }

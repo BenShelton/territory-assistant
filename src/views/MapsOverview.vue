@@ -80,6 +80,7 @@ export default Vue.extend({
         { text: 'Houses', value: 'houses' },
         { text: 'Flats', value: 'flats' },
         { text: 'Businesses', value: 'businesses' },
+        { text: 'Inaccessible', value: 'inaccessible' },
         { text: 'DNC Count', value: 'dncCount' }
       ]
     },
