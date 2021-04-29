@@ -13,14 +13,14 @@ interface IWrapperOptions {
 interface IMountOptions {
   localVue: ReturnType<typeof createLocalVue>
   router: VueRouter
-  vuetify: typeof Vuetify
+  vuetify: Vuetify
   store?: typeof store.original
 }
 
 // mock the initial territory load
 store.original.state.territory.points = [{ lat: 0, lng: 0 }, { lat: 0, lng: 1 }, { lat: 1, lng: 1 }, { lat: 1, lng: 0 }]
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 export function createWrapper (component: any, options?: IWrapperOptions): Wrapper<any> {
   const { store: includeStore = false, ...otherOptions } = options || {}
   const localVue = createLocalVue()
