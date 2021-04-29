@@ -44,7 +44,7 @@ exports[`Views/Maps should match the snapshot 1`] = `
                   </div>
                 </div>
               </div>
-              <p>Use the editor below to edit submaps.</p>
+              <p>Use the editor below to adjust submaps. Add, Edit or Remove submaps using the tools on the top right, or click an existing submap to adjust the name.</p>
               <div id="map-editor-dialog--map"></div>
             </div>
             <div class="v-card__actions justify-end"><button type="button" class="v-btn v-btn--contained theme--light v-size--default error"><span class="v-btn__content">

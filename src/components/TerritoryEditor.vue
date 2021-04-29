@@ -352,7 +352,8 @@ export default Mappable.extend({
               flats: 0,
               businesses: 0,
               inaccessible: 0,
-              dncs: []
+              dncs: [],
+              submaps: []
             })
             const newLayer = this.addMap(newMap)
             this.selectDrawing(newLayer)
