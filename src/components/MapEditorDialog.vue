@@ -27,14 +27,15 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropOptions } from 'vue'
+import { PropOptions } from 'vue'
 import { DrawMap } from 'leaflet'
 
-import store from '@/store'
+import Mappable from '@/mixins/Mappable'
 
 import { IMap } from 'types'
 
-export default Vue.extend({
+// @vue/component
+export default Mappable.extend({
   name: 'MapEditorDialog',
 
   props: {
@@ -50,12 +51,8 @@ export default Vue.extend({
   },
 
   data () {
-    const { src } = store.state.territory.overlay
-    const points = store.state.territory.overlay.bounds || store.state.territory.points
-    const bounds = new this.$leaflet.Polygon([points]).getBounds()
     return {
       map: null as DrawMap | null,
-      imageOverlay: new this.$leaflet.ImageOverlay(src, bounds),
       layers: {
         outline: new this.$leaflet.FeatureGroup()
       },
@@ -97,16 +94,6 @@ export default Vue.extend({
   },
 
   methods: {
-    // TODO: Share between this and TerritoryEditor
-    createMap (id: string): DrawMap {
-      // Create the map & add the tile layer
-      const tileLayer = this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      })
-      return this.$leaflet.map(id, {
-        layers: [tileLayer]
-      })
-    },
     onCancel (): void {
       this.$emit('cancel')
     },

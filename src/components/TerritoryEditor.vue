@@ -49,9 +49,10 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropOptions, PropType } from 'vue'
+import { PropOptions, PropType } from 'vue'
 import { Polygon, CircleMarker, Control, DrawMap, DrawEvents, Rectangle } from 'leaflet'
 
+import Mappable from '@/mixins/Mappable'
 import MapEditorDialog from './MapEditorDialog.vue'
 import store from '@/store'
 
@@ -59,7 +60,8 @@ import { IInfoText, IInfoTypes, IInfoType, IPoint, IMap } from 'types'
 
 type LayerName = 'image' | 'territory' | 'maps' | 'info'
 
-export default Vue.extend({
+// @vue/component
+export default Mappable.extend({
   name: 'TerritoryEditor',
 
   components: { MapEditorDialog },
@@ -81,13 +83,9 @@ export default Vue.extend({
       maps: new this.$leaflet.FeatureGroup(),
       info: new this.$leaflet.FeatureGroup()
     }
-    const { src } = store.state.territory.overlay
-    const points = store.state.territory.overlay.bounds || store.state.territory.points
-    const bounds = new this.$leaflet.Polygon([points]).getBounds()
     return {
       loading: true,
       layers,
-      imageOverlay: new this.$leaflet.ImageOverlay(src, bounds),
       map: null as DrawMap | null,
       drawControl: new this.$leaflet.Control.Draw(),
       editDrawControl: new this.$leaflet.Control.Draw(),
@@ -112,16 +110,6 @@ export default Vue.extend({
   },
 
   methods: {
-    // TODO: Share between this and MapEditorDialog
-    createMap (id: string): DrawMap {
-      // Create the map & add the tile layer
-      const tileLayer = this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      })
-      return this.$leaflet.map(id, {
-        layers: [tileLayer]
-      })
-    },
     initMap (): void {
       const map = this.map = this.createMap('territory-editor--map')
 
