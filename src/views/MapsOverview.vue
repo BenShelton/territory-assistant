@@ -3,7 +3,7 @@
     <h1 class="headline mb-3">
       Maps Overview
     </h1>
-    <v-card class="my-5">
+    <v-card class="my-5" flat outlined>
       <v-card-actions>
         <v-btn
           color="primary"
@@ -45,7 +45,7 @@ import store from '@/store'
 import { IMap } from 'types'
 
 type LoadingName = 'recalculate' | 'print' | ''
-type TableMap = IMap & { dncCount: number }
+type TableMap = IMap & { dncCount: number, submapCount: number }
 interface ITableHeader {
   text: string
   value: keyof TableMap
@@ -75,19 +75,21 @@ export default Vue.extend({
   computed: {
     headers (): ITableHeader[] {
       return [
-        { text: 'Map Name', value: 'name' },
+        { text: 'Name', value: 'name' },
         { text: 'Group', value: 'group' },
         { text: 'Houses', value: 'houses' },
         { text: 'Flats', value: 'flats' },
         { text: 'Businesses', value: 'businesses' },
         { text: 'Inaccessible', value: 'inaccessible' },
-        { text: 'DNC Count', value: 'dncCount' }
+        { text: 'DNCs', value: 'dncCount' },
+        { text: 'Submaps', value: 'submapCount' }
       ]
     },
     items (): TableMap[] {
       return store.state.maps.list.map(m => {
         const dncCount = m.dncs ? m.dncs.length : 0
-        return { ...m, dncCount }
+        const submapCount = m.submaps ? m.submaps.length : 0
+        return { ...m, dncCount, submapCount }
       })
     },
     loading (): boolean {
