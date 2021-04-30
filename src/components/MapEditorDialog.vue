@@ -70,7 +70,7 @@ export default Mappable.extend({
         return this.value
       },
       set (v: boolean) {
-        this.$emit('update', v)
+        this.$emit('input', v)
       }
     }
   },
@@ -183,6 +183,7 @@ export default Mappable.extend({
       console.log('click')
     },
     onCancel (): void {
+      this.dialog = false
       this.$emit('cancel')
     },
     onSave (): void {

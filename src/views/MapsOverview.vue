@@ -4,6 +4,10 @@
       Maps Overview
     </h1>
     <v-card class="my-5" flat outlined>
+      <v-card-text>
+        <p>Use the buttons below to recalculate the count for all maps, or select maps using the checkboxes and print the ones selected.</p>
+        <p>To edit a map, click the row of the table to edit details & submaps.</p>
+      </v-card-text>
       <v-card-actions>
         <v-btn
           color="primary"
@@ -33,6 +37,12 @@
       :headers="headers"
       :items="items"
       :loading="loading"
+      @click:row="onClickRow"
+    />
+    <MapEditorDialog
+      v-model="mapDialogOpen"
+      :prev-map="prevMap"
+      @save="onSave"
     />
   </v-container>
 </template>
@@ -40,6 +50,7 @@
 <script lang="ts">
 import Vue from 'vue'
 
+import MapEditorDialog from '@/components/MapEditorDialog.vue'
 import store from '@/store'
 
 import { IMap } from 'types'
@@ -57,8 +68,12 @@ const HEIGHT = 300
 export default Vue.extend({
   name: 'MapsOverview',
 
+  components: {
+    MapEditorDialog
+  },
+
   created () {
-    store.dispatch.maps.load()
+    this.loadMaps()
   },
 
   mounted () {
@@ -69,7 +84,9 @@ export default Vue.extend({
   data: () => ({
     isLoading: { name: '' as LoadingName, value: false },
     selected: [] as TableMap[],
-    map: null as L.Map | null
+    map: null as L.Map | null,
+    mapDialogOpen: false,
+    prevMap: {} as TableMap
   }),
 
   computed: {
@@ -105,6 +122,9 @@ export default Vue.extend({
     resetLoading () {
       this.isLoading.name = ''
       this.isLoading.value = false
+    },
+    async loadMaps (): Promise<void> {
+      return store.dispatch.maps.load()
     },
     loadImage (): Promise<{ el: HTMLImageElement, bounds: L.LatLngBounds}> {
       const el = new Image()
@@ -191,6 +211,26 @@ export default Vue.extend({
       } finally {
         this.resetLoading()
       }
+    },
+    async onSave (map: Pick<IMap, 'name' | 'group' | 'submaps'>): Promise<void> {
+      this.mapDialogOpen = false
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { dncCount, submapCount, ...rest } = this.prevMap
+        const updatedMap: IMap = {
+          ...rest,
+          ...map
+        }
+        await store.dispatch.maps.update(updatedMap)
+        await this.loadMaps()
+        this.$notification({ type: 'success', text: 'Updated map' })
+      } catch {
+        this.$notification({ type: 'error', text: 'Could not update map' })
+      }
+    },
+    onClickRow (item: TableMap): void {
+      this.prevMap = item
+      this.mapDialogOpen = true
     }
   }
 })
