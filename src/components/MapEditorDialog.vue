@@ -13,12 +13,24 @@
         </v-row>
         <p>Use the editor below to adjust submaps. Add, Edit or Remove submaps using the tools on the top right, or click an existing submap to adjust the name.</p>
         <div id="map-editor-dialog--map" />
+        <v-divider class="my-4" />
+        <p class="mb-0 subtitle-1">
+          Selected Submap Information
+        </p>
+        <v-row>
+          <v-col cols="6">
+            <v-text-field v-if="selectedSubmapLayer" v-model="selectedSubmapName" label="Name" />
+            <p v-else class="my-4 font-weight-bold">
+              (Nothing Selected)
+            </p>
+          </v-col>
+        </v-row>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn color="error" @click="onCancel">
+        <v-btn color="error" :disabled="deleteMode" @click="onCancel">
           CANCEL
         </v-btn>
-        <v-btn color="success" @click="onSave">
+        <v-btn color="success" :disabled="deleteMode" @click="onSave">
           SAVE
         </v-btn>
       </v-card-actions>
@@ -50,6 +62,7 @@ export default Mappable.extend({
   data () {
     return {
       map: null as DrawMap | null,
+      deleteMode: false,
       drawControl: new this.$leaflet.Control.Draw(),
       editDrawControl: new this.$leaflet.Control.Draw(),
       layers: {
@@ -60,7 +73,8 @@ export default Mappable.extend({
         name: '',
         group: '',
         submaps: []
-      } as Pick<IMap, 'name' | 'group' | 'submaps'>
+      } as Pick<IMap, 'name' | 'group' | 'submaps'>,
+      selectedSubmapLayer: null as Polygon | null
     }
   },
 
@@ -72,12 +86,25 @@ export default Mappable.extend({
       set (v: boolean) {
         this.$emit('input', v)
       }
+    },
+    selectedSubmapName: {
+      get (): string {
+        if (!this.selectedSubmapLayer) return ''
+        return this.selectedSubmapLayer.options.prevMap.name
+      },
+      set (v: string) {
+        if (!this.selectedSubmapLayer) return
+        this.selectedSubmapLayer.options.prevMap.name = v
+        this.selectedSubmapLayer.setTooltipContent(v)
+      }
     }
   },
 
   watch: {
     value (val) {
       if (val) {
+        this.deleteMode = false
+        this.selectedSubmapLayer = null
         this.editMap = {
           name: this.prevMap.name,
           group: this.prevMap.group,
@@ -144,18 +171,14 @@ export default Mappable.extend({
       map.on('click', this.deselectDrawing)
       // @ts-ignore
       map.on(this.$leaflet.Draw.Event.CREATED, this.addDrawing)
-      // // @ts-ignore
-      // map.on(this.$leaflet.Draw.Event.EDITRESIZE, this.editResize)
-      // // @ts-ignore
-      // map.on(this.$leaflet.Draw.Event.EDITSTOP, this.editStop)
-      // // @ts-ignore
-      // map.on(this.$leaflet.Draw.Event.EDITED, this.editDrawings)
-      // // @ts-ignore
-      // map.on(this.$leaflet.Draw.Event.DELETESTART, this.onDeleteStart)
-      // // @ts-ignore
-      // map.on(this.$leaflet.Draw.Event.DELETESTOP, this.onDeleteStop)
-      // // @ts-ignore
-      // map.on(this.$leaflet.Draw.Event.DELETED, this.removeDrawings)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.EDITED, this.editDrawings)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.DELETESTART, this.onDeleteStart)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.DELETESTOP, this.onDeleteStop)
+      // @ts-ignore
+      map.on(this.$leaflet.Draw.Event.DELETED, this.removeDrawings)
     },
     addDrawing (e: DrawEvents.Created): void {
       const layer = e.layer as Polygon
@@ -168,19 +191,48 @@ export default Mappable.extend({
       const newLayer = this.addSubmap(newSubmap)
       this.selectDrawing(newLayer)
     },
+    editDrawings (e: DrawEvents.Edited): void {
+      e.layers.eachLayer((l) => {
+        const layer = l as Polygon
+        const points: IPoint[] = (layer.getLatLngs() as L.LatLng[][])[0]
+        layer.options.prevMap.bounds = points
+      })
+    },
+    removeDrawings (e: DrawEvents.Deleted): void {
+      e.layers.eachLayer((l) => {
+        const layer = l as Polygon
+        this.layers.submaps.removeLayer(layer)
+        const index = this.editMap.submaps.indexOf(layer.options.prevMap)
+        if (index > -1) {
+          this.editMap.submaps.splice(index, 1)
+        }
+      })
+    },
     addSubmap (submap: ISubmap): Polygon {
-      const layer = this.$leaflet.polygon([submap.bounds])
+      const layer = this.$leaflet.polygon([submap.bounds], { prevMap: submap })
+      layer.on({ click: this.onDrawingClick })
       layer.setStyle({ color: 'purple' })
+      layer.bindTooltip(submap.name, { permanent: true, interactive: false, direction: 'center' })
       this.layers.submaps.addLayer(layer)
       return layer
     },
     selectDrawing (layer: Polygon): void {
-      // TODO: Show editable submap information
-      console.log(layer)
+      this.selectedSubmapLayer = layer
     },
     deselectDrawing (): void {
-      // TODO: Hide editable submap information
-      console.log('click')
+      this.selectedSubmapLayer = null
+    },
+    onDrawingClick (e: L.LeafletMouseEvent): void {
+      if (this.deleteMode) return
+      this.$leaflet.DomEvent.stopPropagation(e)
+      this.selectDrawing(e.target)
+    },
+    onDeleteStart (): void {
+      this.deleteMode = true
+      this.deselectDrawing()
+    },
+    onDeleteStop (): void {
+      this.deleteMode = false
     },
     onCancel (): void {
       this.dialog = false

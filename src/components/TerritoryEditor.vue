@@ -402,7 +402,7 @@ export default Mappable.extend({
               break
             case 'maps':
               await store.dispatch.maps.update({
-                ...layer.options.prevMap,
+                ...(layer.options.prevMap as IMap),
                 bounds: points
               })
               this.$notification({ type: 'success', text: 'Edited map boundary' })
@@ -443,7 +443,7 @@ export default Mappable.extend({
               break
             }
             case 'maps': {
-              const id = layer.options.prevMap._id
+              const id = (layer.options.prevMap as IMap)._id
               if (!id) throw new Error('No Id saved on map')
               await store.dispatch.maps.delete(id)
               this.layers.maps.removeLayer(layer)
@@ -494,7 +494,7 @@ export default Mappable.extend({
       if (!this.activeMap) return
       try {
         const updatedMap: IMap = {
-          ...this.activeMap.options.prevMap,
+          ...(this.activeMap.options.prevMap as IMap),
           ...map
         }
         await store.dispatch.maps.update(updatedMap)
