@@ -58,8 +58,8 @@ exports[`App should match the snapshot 1`] = `
       </div>
       <div class="v-navigation-drawer__border"></div>
     </nav>
-    <main class="v-main v-content" style="padding: 64px 0px 0px 0px;">
-      <div class="v-main__wrap v-content__wrap"></div>
+    <main class="v-main" style="padding: 64px 0px 0px 0px;">
+      <div class="v-main__wrap"></div>
     </main>
     <div class="notifications-wrapper"><span></span></div>
   </div>
