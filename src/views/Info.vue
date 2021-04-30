@@ -10,6 +10,7 @@
     </h1>
     <TerritoryEditor
       edit-layer="info"
+      :active-layers="['image']"
       :toggle-layers="['image', 'territory', 'maps']"
     />
   </v-container>

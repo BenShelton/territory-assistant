@@ -29,23 +29,13 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="mapDialogOpen" max-width="300">
-      <v-card>
-        <v-card-title>Edit Map</v-card-title>
-        <v-card-text>
-          <v-text-field v-model="editableMap.name" label="Name" />
-          <v-text-field v-model="editableMap.group" label="Group" />
-        </v-card-text>
-        <v-card-actions class="justify-end">
-          <v-btn color="error" @click="deselectDrawing">
-            CANCEL
-          </v-btn>
-          <v-btn color="success" @click="onUpdateMap">
-            SAVE
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <MapEditorDialog
+      v-if="editLayer === 'maps'"
+      v-model="mapDialogOpen"
+      :prev-map="activeMap ? activeMap.options.prevMap : {}"
+      @cancel="deselectDrawing"
+      @save="onUpdateMap"
+    />
     <v-btn
       v-if="showInfoToggle"
       color="primary"
@@ -54,27 +44,32 @@
     >
       Toggle Labels
     </v-btn>
-    <div id="map" />
+    <div id="territory-editor--map" />
   </v-card>
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from 'vue'
-
-import store from '@/store'
+import { PropOptions, PropType } from 'vue'
 import { Polygon, CircleMarker, Control, DrawMap, DrawEvents, Rectangle } from 'leaflet'
+
+import Mappable from '@/mixins/Mappable'
+import MapEditorDialog from './MapEditorDialog.vue'
+import store from '@/store'
 
 import { IInfoText, IInfoTypes, IInfoType, IPoint, IMap } from 'types'
 
 type LayerName = 'image' | 'territory' | 'maps' | 'info'
 
-export default Vue.extend({
+// @vue/component
+export default Mappable.extend({
   name: 'TerritoryEditor',
+
+  components: { MapEditorDialog },
 
   props: {
     activeLayers: { type: Array as PropType<LayerName[]>, default: () => [] },
     toggleLayers: { type: Array as PropType<LayerName[]>, default: () => [] },
-    editLayer: { type: String as PropType<LayerName | ''>, default: '' }
+    editLayer: { type: String, default: '' } as PropOptions<LayerName | ''>
   },
 
   mounted () {
@@ -88,17 +83,9 @@ export default Vue.extend({
       maps: new this.$leaflet.FeatureGroup(),
       info: new this.$leaflet.FeatureGroup()
     }
-    const { src } = store.state.territory.overlay
-    const points = store.state.territory.overlay.bounds || store.state.territory.points
-    const bounds = new this.$leaflet.Polygon([points]).getBounds()
-    const editableMap: Pick<IMap, 'name' | 'group'> = {
-      name: '',
-      group: ''
-    }
     return {
       loading: true,
       layers,
-      imageOverlay: new this.$leaflet.ImageOverlay(src, bounds),
       map: null as DrawMap | null,
       drawControl: new this.$leaflet.Control.Draw(),
       editDrawControl: new this.$leaflet.Control.Draw(),
@@ -108,7 +95,6 @@ export default Vue.extend({
       activeInfoText: '',
       activeInfoType: 'House' as IInfoType,
       activeMap: null as Polygon | null,
-      editableMap,
       deleteMode: false,
       showLabels: false
     }
@@ -116,7 +102,7 @@ export default Vue.extend({
 
   computed: {
     infoTypes (): IInfoTypes {
-      return ['Houses', 'Flats', 'Businesses', 'Comment', 'Todo']
+      return ['Houses', 'Flats', 'Businesses', 'Inaccessible', 'Comment', 'Todo']
     },
     showInfoToggle (): boolean {
       return this.editLayer === 'info' || this.toggleLayers.includes('info')
@@ -125,13 +111,7 @@ export default Vue.extend({
 
   methods: {
     initMap (): void {
-      // Create the map & add the tile layer
-      const tileLayer = this.$leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      })
-      const map = this.map = this.$leaflet.map('map', {
-        layers: [tileLayer]
-      })
+      const map = this.map = this.createMap('territory-editor--map')
 
       map.fitBounds(new this.$leaflet.Polygon([store.state.territory.points]).getBounds())
 
@@ -266,7 +246,7 @@ export default Vue.extend({
             layer.clearLayers()
             this.addImage()
             break
-          case this.layers.info:
+          case this.layers.info: {
             this.showLabels = false
             await store.dispatch.info.load()
             const texts = store.state.info.texts
@@ -275,7 +255,8 @@ export default Vue.extend({
               this.addInfoText(b)
             })
             break
-          case this.layers.maps:
+          }
+          case this.layers.maps: {
             await store.dispatch.maps.load()
             const maps = store.state.maps.list
             layer.clearLayers()
@@ -283,11 +264,13 @@ export default Vue.extend({
               this.addMap(b)
             })
             break
-          case this.layers.territory:
+          }
+          case this.layers.territory: {
             const points = store.state.territory.points
             if (points.length) {
               this.addTerritory(points)
             }
+          }
         }
       } finally {
         this.loading = false
@@ -337,6 +320,7 @@ export default Vue.extend({
       switch (type) {
         case 'Flats': return 'purple'
         case 'Businesses': return 'green'
+        case 'Inaccessible': return 'black'
         case 'Comment': return 'grey'
         case 'Todo': return 'red'
         default: return 'blue'
@@ -367,7 +351,9 @@ export default Vue.extend({
               houses: 0,
               flats: 0,
               businesses: 0,
-              dncs: []
+              inaccessible: 0,
+              dncs: [],
+              submaps: []
             })
             const newLayer = this.addMap(newMap)
             this.selectDrawing(newLayer)
@@ -416,7 +402,7 @@ export default Vue.extend({
               break
             case 'maps':
               await store.dispatch.maps.update({
-                ...layer.options.prevMap,
+                ...(layer.options.prevMap as IMap),
                 bounds: points
               })
               this.$notification({ type: 'success', text: 'Edited map boundary' })
@@ -457,7 +443,7 @@ export default Vue.extend({
               break
             }
             case 'maps': {
-              const id = layer.options.prevMap._id
+              const id = (layer.options.prevMap as IMap)._id
               if (!id) throw new Error('No Id saved on map')
               await store.dispatch.maps.delete(id)
               this.layers.maps.removeLayer(layer)
@@ -504,15 +490,15 @@ export default Vue.extend({
         this.$notification({ type: 'error', text: 'Could not update information marker text' })
       }
     },
-    async onUpdateMap (): Promise<void> {
+    async onUpdateMap (map: Partial<IMap>): Promise<void> {
       if (!this.activeMap) return
       try {
         const updatedMap: IMap = {
-          ...this.activeMap.options.prevMap,
-          ...this.editableMap
+          ...(this.activeMap.options.prevMap as IMap),
+          ...map
         }
         await store.dispatch.maps.update(updatedMap)
-        Object.assign(this.activeMap.options.prevMap, this.editableMap)
+        Object.assign(this.activeMap.options.prevMap, map)
         const tooltip = this.activeMap.getTooltip()
         if (tooltip) tooltip.setContent(updatedMap.name)
         this.deselectDrawing()
@@ -528,7 +514,6 @@ export default Vue.extend({
       this.mapDialogOpen = false
       this.activeInfoText = ''
       this.activeInfoType = 'Houses'
-      this.editableMap = { name: '', group: '' }
     },
     selectDrawing (layer: CircleMarker | Polygon): void {
       if (layer instanceof CircleMarker) {
@@ -541,7 +526,6 @@ export default Vue.extend({
       } else {
         this.deselectDrawing()
         this.activeMap = layer
-        this.editableMap = { name: layer.options.prevMap.name, group: layer.options.prevMap.group }
         this.mapDialogOpen = true
       }
     },
@@ -564,7 +548,7 @@ export default Vue.extend({
   bottom: 5px
   left: 5px
   z-index: 1
-#map
+#territory-editor--map
   height: 100%
   width: 100%
   z-index: 0

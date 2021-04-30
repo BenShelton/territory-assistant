@@ -1,5 +1,10 @@
 import { IPoint } from './territory'
 
+export interface ISubmap {
+  name: string
+  bounds: IPoint[]
+}
+
 export interface IMap {
   _id?: string
   name: string
@@ -7,6 +12,8 @@ export interface IMap {
   houses: number
   flats: number
   businesses: number
+  inaccessible: number
   bounds: IPoint[]
   dncs: string[]
+  submaps: ISubmap[]
 }

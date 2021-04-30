@@ -18,15 +18,15 @@ export async function getInfo (): Promise<IInfoText[]> {
   return info as IInfoText[]
 }
 
-export async function addInfo (info: API.Info.Add.Request): Promise<CollInfo> {
+export async function addInfo (info: API.Info.Add.Request): Promise<IInfoText> {
   const coll = await getCollection
   const newInfoResult = await coll.insertOne(info)
   const newInfo: CollInfo | null = newInfoResult && newInfoResult.ops && newInfoResult.ops[0]
   if (!newInfo) throw new Error('Adding New Info was unsuccessful')
-  return newInfo
+  return newInfo as IInfoText
 }
 
-export async function updateInfo (id: string, info: API.Info.Update.Request): Promise<CollInfo> {
+export async function updateInfo (id: string, info: API.Info.Update.Request): Promise<IInfoText> {
   const coll = await getCollection
   const query = { _id: new ObjectID(id) }
   const updateInfo = { ...info }
@@ -34,7 +34,7 @@ export async function updateInfo (id: string, info: API.Info.Update.Request): Pr
   const update: UpdateQuery<CollInfo> = { $set: updateInfo }
   const { value } = await coll.findOneAndUpdate(query, update, { returnOriginal: false })
   if (!value) throw new Error('Updating Info was unsuccessful')
-  return value
+  return value as IInfoText
 }
 
 export async function deleteInfo (id: API.Info.Delete.Request): Promise<void> {

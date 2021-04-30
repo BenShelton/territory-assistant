@@ -10,9 +10,10 @@ describe('Views/Home', () => {
     fetchMock.mockResponse(async (req) => {
       const url = req.url.replace('/.netlify/functions/', '')
       switch (url) {
-        case 'info':
+        case 'info': {
           const res: API.Info.List.Response = []
           return JSON.stringify(res)
+        }
       }
       return JSON.stringify({})
     })
