@@ -19,7 +19,7 @@
     "core-js": "^3.11.0",
     "direct-vuex": "~0.9.9",
     "dotenv": "^8.2.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "leaflet": "^1.6.0",
     "leaflet-draw": "^1.0.4",
     "mongodb": "^3.3.4",
